@@ -1,0 +1,20 @@
+{
+  "candidate_version": "v2",
+  "trained_at": "2026-09-24T10:09:49.583433+00:00",
+  "train_samples": 1387,
+  "val_samples": 463,
+  "num_features": [
+    "age",
+    "annual_income",
+    "credit_score",
+    "debt_to_income_ratio",
+    "loan_amount",
+    "interest_rate",
+    "employment_history_length"
+  ],
+  "cat_features": [
+    "home_ownership",
+    "loan_intent"
+  ],
+  "model_artifact": "data/models/challenger/model.joblib"
+}

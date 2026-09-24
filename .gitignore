@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Node & Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+.npm
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment & Credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+gcp-key.json
+
+# Local storage and mock directories
+data/gcs_mock/
+data/inference_logs/
+data/reports/
+data/models/v*
+!data/models/v1/
+
+# OS files
+.DS_Store
+Thumbs.db

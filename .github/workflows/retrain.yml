@@ -1,0 +1,66 @@
+name: Model Retraining & Closed-Loop Promotion
+
+on:
+  repository_dispatch:
+    types: [retrain_trigger]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force promotion bypassing evaluation gate"
+        type: boolean
+        default: false
+
+jobs:
+  retrain-and-promote:
+    name: Train Challenger, Evaluate & Promote
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r retrain/requirements.txt
+
+      - name: Authenticate to Google Cloud via WIF
+        if: env.GCP_WORKLOAD_IDENTITY_PROVIDER != ''
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Step 1 - Train Challenger Model
+        env:
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+        run: |
+          python -m retrain.train --data-source recent_logs
+
+      - name: Step 2 - Offline Champion vs Challenger Evaluation
+        run: |
+          python -m retrain.evaluate
+
+      - name: Step 3 - Promote Challenger & Refresh Baseline
+        env:
+          SERVING_RELOAD_URL: ${{ secrets.SERVING_RELOAD_URL }}
+          FORCE_FLAG: ${{ github.event.inputs.force == 'true' && '--force' || '' }}
+        run: |
+          python -m retrain.promote $FORCE_FLAG
+
+      - name: Step 4 - Commit Version Updates (if applicable)
+        run: |
+          git config --global user.name "DriftOps Bot"
+          git config --global user.email "bot@driftplatform.ai"
+          git add data/models/latest.json || true
+          git commit -m "chore(model): promote new champion version [skip ci]" || true
+          git push || true

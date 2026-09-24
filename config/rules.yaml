@@ -1,0 +1,56 @@
+# Drift Monitoring and Retraining Policy Configuration
+# Note: This platform operates in near-real-time / batch mode (e.g. 6-hour cron or daily batch).
+
+monitoring:
+  batch_window_hours: 6
+  min_samples: 100
+  prediction_column: "prediction_score"
+  label_column: "prediction_label"
+
+metrics:
+  psi:
+    # Industry standard thresholds
+    no_drift: 0.10       # PSI < 0.10: distributions are similar
+    moderate_drift: 0.20 # 0.10 <= PSI < 0.20: moderate shift / warning
+    # PSI >= 0.20: severe drift / alert
+    num_bins: 10
+    epsilon: 0.0001      # Laplace-style smoothing for empty bins
+
+  ks_test:
+    p_value_threshold: 0.05  # Reject null hypothesis of equal distributions if p < 0.05
+
+  chi2_test:
+    p_value_threshold: 0.05  # Reject independence / homogeneity if p < 0.05
+
+  prediction_drift:
+    psi_threshold: 0.15
+    ks_p_value_threshold: 0.05
+
+quality:
+  max_null_pct: 0.05         # Fail if > 5% values in any feature are null
+  max_oov_pct: 0.02          # Fail if > 2% categorical values are unseen out-of-vocabulary
+  check_type_mismatch: true
+
+alerting:
+  cooldown_hours: 12         # Do not re-alert on the same feature within 12 hours unless severity escalates
+  dedup_window_hours: 24
+  channels:
+    telegram:
+      enabled: true
+      send_on_warning: true
+      send_on_drift: true
+      include_retrain_button: true
+
+retraining:
+  # Retrain modes:
+  # - "manual": only retrain via UI or API trigger
+  # - "threshold_approval": trigger request to Telegram/Web for 1-click human approval
+  # - "auto_on_severe": automatically dispatch retrain job when criteria met
+  mode: "threshold_approval"
+  trigger_conditions:
+    severe_drift_feature_count: 2  # Retrain if >= 2 features have severe drift (PSI >= 0.2)
+    trigger_on_prediction_drift: true # Also trigger if prediction score exhibits severe drift
+    trigger_on_high_importance_drift: true # Trigger if any 'high' importance feature drifts >= 0.25
+  evaluation:
+    min_roc_auc_delta: 0.005       # Challenger must improve or match Champion AUC within tolerance
+    max_perf_degradation: 0.01     # Rejection if challenger underperforms champion by > 1%

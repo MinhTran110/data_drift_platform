@@ -1,0 +1,76 @@
+{
+  "dataset_name": "credit_risk_default",
+  "prediction_target": "default",
+  "features": [
+    {
+      "name": "age",
+      "type": "numerical",
+      "importance": "medium",
+      "description": "Age of the borrower in years",
+      "min": 18,
+      "max": 100
+    },
+    {
+      "name": "annual_income",
+      "type": "numerical",
+      "importance": "high",
+      "description": "Annual reported gross income in USD",
+      "min": 5000,
+      "max": 2000000
+    },
+    {
+      "name": "credit_score",
+      "type": "numerical",
+      "importance": "high",
+      "description": "FICO credit bureau risk score",
+      "min": 300,
+      "max": 850
+    },
+    {
+      "name": "debt_to_income_ratio",
+      "type": "numerical",
+      "importance": "high",
+      "description": "Total monthly debt payments divided by gross monthly income",
+      "min": 0.0,
+      "max": 1.5
+    },
+    {
+      "name": "loan_amount",
+      "type": "numerical",
+      "importance": "high",
+      "description": "Requested loan principal in USD",
+      "min": 1000,
+      "max": 100000
+    },
+    {
+      "name": "interest_rate",
+      "type": "numerical",
+      "importance": "medium",
+      "description": "Annual loan interest rate percentage",
+      "min": 2.0,
+      "max": 36.0
+    },
+    {
+      "name": "home_ownership",
+      "type": "categorical",
+      "importance": "medium",
+      "description": "Home ownership status",
+      "allowed_values": ["RENT", "OWN", "MORTGAGE", "OTHER"]
+    },
+    {
+      "name": "loan_intent",
+      "type": "categorical",
+      "importance": "high",
+      "description": "Declared purpose of the loan",
+      "allowed_values": ["PERSONAL", "EDUCATION", "MEDICAL", "VENTURE", "HOMEIMPROVEMENT", "DEBTCONSOLIDATION"]
+    },
+    {
+      "name": "employment_history_length",
+      "type": "numerical",
+      "importance": "low",
+      "description": "Length of verified employment in years",
+      "min": 0,
+      "max": 60
+    }
+  ]
+}

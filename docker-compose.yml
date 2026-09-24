@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: drift_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-drift_platform}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./web/db/schema.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d drift_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  serving:
+    build:
+      context: .
+      dockerfile: serving/Dockerfile
+    container_name: drift_serving
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME:-drift-platform-data}
+      - GCS_LOG_PREFIX=${GCS_LOG_PREFIX:-inference_logs}
+      - GCS_LOCAL_MOCK_DIR=/app/data/gcs_mock
+      - MODEL_REGISTRY_PATH=/app/data/models
+      - SERVING_BUFFER_SIZE=200
+      - SERVING_FLUSH_INTERVAL_SECONDS=15
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

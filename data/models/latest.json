@@ -1,0 +1,8 @@
+{
+  "version": "v1",
+  "previous_version": "v2",
+  "model_path": "v1/model.joblib",
+  "promoted_at": "2026-09-24T10:09:55.660748+00:00",
+  "is_rollback": true,
+  "rolled_back_from": "v2"
+}
