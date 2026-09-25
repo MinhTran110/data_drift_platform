@@ -131,7 +131,7 @@ export function FeatureTable({ features }: FeatureTableProps) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="w-12 font-mono font-medium text-slate-800">
-                          {f.psi.toFixed(4)}
+                          {Number(f.psi || 0).toFixed(4)}
                         </span>
                         <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
                           <div
@@ -144,11 +144,11 @@ export function FeatureTable({ features }: FeatureTableProps) {
                     <td className="px-4 py-3 font-mono text-slate-600">
                       {f.feature_type === "numerical" ? (
                         <span>
-                          KS: {f.ks_statistic ?? "-"} (p={f.ks_p_value !== undefined ? f.ks_p_value.toFixed(4) : "-"})
+                          KS: {f.ks_statistic ?? "-"} (p={f.ks_p_value !== undefined ? Number(f.ks_p_value).toFixed(4) : "-"})
                         </span>
                       ) : (
                         <span>
-                          Chi²: {f.chi2_statistic ?? "-"} (p={f.chi2_p_value !== undefined ? f.chi2_p_value.toFixed(4) : "-"})
+                          Chi²: {f.chi2_statistic ?? "-"} (p={f.chi2_p_value !== undefined ? Number(f.chi2_p_value).toFixed(4) : "-"})
                         </span>
                       )}
                     </td>
