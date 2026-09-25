@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             callback_query_id: callbackId,
-            text: dispatchResult.success ? "Retraining workflow dispatched! 🚀" : "Retraining failed to dispatch.",
+            text: dispatchResult.success ? "Retraining workflow dispatched! " : "Retraining failed to dispatch.",
             show_alert: true,
           }),
         }).catch(() => {});

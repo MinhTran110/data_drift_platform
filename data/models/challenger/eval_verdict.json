@@ -1,28 +1,28 @@
 {
-  "timestamp": "2026-09-24T10:09:50.345929+00:00",
-  "champion_version": "v1",
-  "challenger_version": "v2",
+  "timestamp": "2026-09-24T10:17:44.095014+00:00",
+  "champion_version": "v3",
+  "challenger_version": "v4",
   "verdict": "APPROVED",
-  "reason": "Challenger ROC-AUC (0.9968) meets criteria compared to Champion (0.9986, delta: -0.0018)",
+  "reason": "Challenger ROC-AUC (0.9533) meets criteria compared to Champion (0.8618, delta: +0.0915)",
   "metrics": {
     "champion": {
-      "roc_auc": 0.9986,
-      "pr_auc": 0.9991,
-      "f1_score": 0.9875,
-      "log_loss": 0.0527,
-      "latency_ms": 0.009
+      "roc_auc": 0.8618,
+      "pr_auc": 0.8172,
+      "f1_score": 0.9013,
+      "log_loss": 0.7813,
+      "latency_ms": 0.007
     },
     "challenger": {
-      "roc_auc": 0.9968,
-      "pr_auc": 0.998,
-      "f1_score": 0.9732,
-      "log_loss": 0.0706,
-      "latency_ms": 0.033
+      "roc_auc": 0.9533,
+      "pr_auc": 0.9601,
+      "f1_score": 0.864,
+      "log_loss": 0.2523,
+      "latency_ms": 0.011
     },
     "delta": {
-      "roc_auc": -0.0018,
-      "f1_score": -0.0143,
-      "log_loss": 0.0179
+      "roc_auc": 0.0915,
+      "f1_score": -0.0373,
+      "log_loss": -0.529
     }
   }
 }

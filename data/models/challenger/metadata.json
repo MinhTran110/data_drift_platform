@@ -1,8 +1,8 @@
 {
-  "candidate_version": "v2",
-  "trained_at": "2026-09-24T10:09:49.583433+00:00",
-  "train_samples": 1387,
-  "val_samples": 463,
+  "candidate_version": "v4",
+  "trained_at": "2026-09-24T10:17:43.397964+00:00",
+  "train_samples": 2217,
+  "val_samples": 740,
   "num_features": [
     "age",
     "annual_income",

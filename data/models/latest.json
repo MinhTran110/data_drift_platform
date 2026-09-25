@@ -1,8 +1,15 @@
 {
-  "version": "v1",
-  "previous_version": "v2",
-  "model_path": "v1/model.joblib",
-  "promoted_at": "2026-09-24T10:09:55.660748+00:00",
-  "is_rollback": true,
-  "rolled_back_from": "v2"
+  "version": "v4",
+  "previous_version": "v3",
+  "model_path": "v4/model.joblib",
+  "promoted_at": "2026-09-24T10:17:44.484830+00:00",
+  "metrics": {
+    "roc_auc": 0.9533,
+    "pr_auc": 0.9601,
+    "f1_score": 0.864,
+    "log_loss": 0.2523,
+    "latency_ms": 0.011
+  },
+  "trained_at": "2026-09-24T10:17:43.397964+00:00",
+  "evaluation_verdict": "APPROVED"
 }
