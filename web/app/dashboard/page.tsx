@@ -28,9 +28,16 @@ async function getDashboardData() {
         sampleCount: r.sample_count,
       })).reverse();
 
+      const formattedFeatures = (features || []).map((f: any) => ({
+        ...f,
+        psi: Number(f.psi) || 0,
+        ks_statistic: f.ks_statistic != null ? Number(f.ks_statistic) : null,
+        ks_p_value: f.ks_p_value != null ? Number(f.ks_p_value) : null,
+      }));
+
       return {
         latestRun,
-        features: features as FeatureRow[],
+        features: formattedFeatures as FeatureRow[],
         trendPoints,
       };
     }
