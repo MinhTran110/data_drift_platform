@@ -4,7 +4,8 @@ import { query } from "@/lib/db";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PsiTrendChart, TrendPoint } from "@/components/PsiTrendChart";
 import { FeatureTable, FeatureRow } from "@/components/FeatureTable";
-
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 async function getDashboardData() {
   try {
     // 1. Fetch latest drift run
