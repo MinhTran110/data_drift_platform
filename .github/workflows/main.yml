@@ -1,0 +1,19 @@
+name: Test Github Actions
+
+# Kích hoạt khi có commit push lên main hoặc khi bấm nút chạy bằng tay
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy mã nguồn về máy ảo
+        uses: actions/checkout@v4
+
+      - name: In thông báo kiểm tra
+        run: |
+          echo "GitHub Actions đang hoạt động bình thường trên repository data_drift_platform!"
+          python3 --version
