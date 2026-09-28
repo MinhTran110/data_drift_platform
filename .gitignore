@@ -54,6 +54,8 @@ data/inference_logs/
 data/reports/
 data/models/v*
 !data/models/v1/
+!data/gcs_mock/
+!data/gcs_mock/baseline/**
 
 # OS files
 .DS_Store

@@ -1,0 +1,810 @@
+{
+  "window_start": "2026-09-25T01:14:43.087200+00:00",
+  "window_end": "2026-09-25T07:14:43.087200+00:00",
+  "sample_count": 1100,
+  "overall_status": "DRIFT_DETECTED",
+  "max_psi": 0.8962,
+  "severe_drift_count": 3,
+  "warning_drift_count": 1,
+  "quality_report": {
+    "passed": true,
+    "total_rows": 1100,
+    "violations_count": 0,
+    "critical_violations": [],
+    "warning_violations": [],
+    "feature_quality": {
+      "age": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "annual_income": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "credit_score": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "debt_to_income_ratio": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "loan_amount": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "interest_rate": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      },
+      "home_ownership": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "oov_count": 0,
+        "oov_pct": 0.0
+      },
+      "loan_intent": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "oov_count": 0,
+        "oov_pct": 0.0
+      },
+      "employment_history_length": {
+        "null_count": 0,
+        "null_pct": 0.0,
+        "passed": true,
+        "out_of_bounds_pct": 0.0
+      }
+    }
+  },
+  "features": [
+    {
+      "feature_name": "age",
+      "feature_type": "numerical",
+      "importance": "medium",
+      "psi": 0.02359,
+      "status": "STABLE",
+      "ks_statistic": 0.05824,
+      "ks_p_value": 0.092597,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 38.51,
+        "std": 11.17,
+        "median": 39.0,
+        "min": 18.0,
+        "max": 73.0,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 37.89,
+        "std": 11.17,
+        "median": 37.0,
+        "min": 18.0,
+        "max": 73.0,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 23.00]",
+          "[23.00, 29.00]",
+          "[29.00, 33.00]",
+          "[33.00, 36.00]",
+          "[36.00, 39.00]",
+          "[39.00, 41.00]",
+          "[41.00, 44.00]",
+          "[44.00, 48.00]",
+          "[48.00, 53.00]",
+          "[53.00, +inf]"
+        ],
+        "baseline_pct": [
+          0.09467,
+          0.1,
+          0.09067,
+          0.09733,
+          0.116,
+          0.07333,
+          0.12533,
+          0.10133,
+          0.096,
+          0.10533
+        ],
+        "production_pct": [
+          0.08727,
+          0.14273,
+          0.08636,
+          0.11091,
+          0.09636,
+          0.06909,
+          0.12727,
+          0.09182,
+          0.08818,
+          0.1
+        ],
+        "psi_components": [
+          0.0006,
+          0.0152,
+          0.00021,
+          0.00177,
+          0.00364,
+          0.00025,
+          3e-05,
+          0.00094,
+          0.00066,
+          0.00028
+        ],
+        "bin_edges": [
+          18.0,
+          23.0,
+          29.0,
+          33.0,
+          36.0,
+          39.0,
+          41.0,
+          44.0,
+          48.0,
+          53.0,
+          73.0
+        ]
+      }
+    },
+    {
+      "feature_name": "annual_income",
+      "feature_type": "numerical",
+      "importance": "high",
+      "psi": 0.02903,
+      "status": "STABLE",
+      "ks_statistic": 0.03509,
+      "ks_p_value": 0.626517,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 58732.13,
+        "std": 39779.49,
+        "median": 47900.0,
+        "min": 15000.0,
+        "max": 389400.0,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 57482.0,
+        "std": 36367.94,
+        "median": 49400.0,
+        "min": 15000.0,
+        "max": 330200.0,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 22100.00]",
+          "[22100.00, 28880.00]",
+          "[28880.00, 34500.00]",
+          "[34500.00, 41400.00]",
+          "[41400.00, 47900.00]",
+          "[47900.00, 56800.00]",
+          "[56800.00, 67260.00]",
+          "[67260.00, 79280.00]",
+          "[79280.00, 106060.00]",
+          "[106060.00, +inf]"
+        ],
+        "baseline_pct": [
+          0.09867,
+          0.10133,
+          0.09867,
+          0.09733,
+          0.10267,
+          0.1,
+          0.10133,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "production_pct": [
+          0.10545,
+          0.09636,
+          0.07545,
+          0.11545,
+          0.09182,
+          0.10545,
+          0.13727,
+          0.07636,
+          0.09545,
+          0.10091
+        ],
+        "psi_components": [
+          0.00045,
+          0.00025,
+          0.00623,
+          0.00309,
+          0.00121,
+          0.00029,
+          0.01091,
+          0.00637,
+          0.00021,
+          1e-05
+        ],
+        "bin_edges": [
+          15000.0,
+          22100.0,
+          28880.0,
+          34500.0,
+          41400.0,
+          47900.0,
+          56800.0,
+          67260.0,
+          79280.0,
+          106060.0,
+          389400.0
+        ]
+      }
+    },
+    {
+      "feature_name": "credit_score",
+      "feature_type": "numerical",
+      "importance": "high",
+      "psi": 0.46913,
+      "status": "DRIFT",
+      "ks_statistic": 0.27964,
+      "ks_p_value": 0.0,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 681.49,
+        "std": 75.61,
+        "median": 682.0,
+        "min": 450.0,
+        "max": 850.0,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 622.92,
+        "std": 94.93,
+        "median": 624.0,
+        "min": 328.67,
+        "max": 850.0,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 581.00]",
+          "[581.00, 616.00]",
+          "[616.00, 643.70]",
+          "[643.70, 665.00]",
+          "[665.00, 682.00]",
+          "[682.00, 697.40]",
+          "[697.40, 722.30]",
+          "[722.30, 747.20]",
+          "[747.20, 782.00]",
+          "[782.00, +inf]"
+        ],
+        "baseline_pct": [
+          0.09867,
+          0.09867,
+          0.10267,
+          0.09333,
+          0.10267,
+          0.104,
+          0.1,
+          0.1,
+          0.09733,
+          0.10267
+        ],
+        "production_pct": [
+          0.32727,
+          0.14727,
+          0.09182,
+          0.07909,
+          0.06273,
+          0.05091,
+          0.09273,
+          0.06182,
+          0.04273,
+          0.04364
+        ],
+        "psi_components": [
+          0.27411,
+          0.01947,
+          0.00121,
+          0.00236,
+          0.01968,
+          0.03793,
+          0.00055,
+          0.01836,
+          0.04496,
+          0.05051
+        ],
+        "bin_edges": [
+          450.0,
+          581.0,
+          616.0,
+          643.7,
+          665.0,
+          682.0,
+          697.4,
+          722.3,
+          747.2,
+          782.0,
+          850.0
+        ]
+      }
+    },
+    {
+      "feature_name": "debt_to_income_ratio",
+      "feature_type": "numerical",
+      "importance": "high",
+      "psi": 0.70527,
+      "status": "DRIFT",
+      "ks_statistic": 0.34897,
+      "ks_p_value": 0.0,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 0.23,
+        "std": 0.13,
+        "median": 0.22,
+        "min": 0.02,
+        "max": 0.64,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 0.37,
+        "std": 0.19,
+        "median": 0.37,
+        "min": 0.02,
+        "max": 0.95,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 0.08]",
+          "[0.08, 0.11]",
+          "[0.11, 0.15]",
+          "[0.15, 0.19]",
+          "[0.19, 0.22]",
+          "[0.22, 0.25]",
+          "[0.25, 0.30]",
+          "[0.30, 0.36]",
+          "[0.36, 0.41]",
+          "[0.41, +inf]"
+        ],
+        "baseline_pct": [
+          0.1,
+          0.09733,
+          0.10267,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "production_pct": [
+          0.05091,
+          0.04,
+          0.06727,
+          0.05273,
+          0.04727,
+          0.05818,
+          0.05273,
+          0.10273,
+          0.09727,
+          0.43091
+        ],
+        "psi_components": [
+          0.03314,
+          0.05098,
+          0.01496,
+          0.03026,
+          0.03951,
+          0.02265,
+          0.03026,
+          7e-05,
+          8e-05,
+          0.48337
+        ],
+        "bin_edges": [
+          0.02,
+          0.0779,
+          0.11,
+          0.1487,
+          0.1856,
+          0.2185,
+          0.2534,
+          0.3013,
+          0.3572,
+          0.4142,
+          0.641
+        ]
+      }
+    },
+    {
+      "feature_name": "loan_amount",
+      "feature_type": "numerical",
+      "importance": "high",
+      "psi": 0.01493,
+      "status": "STABLE",
+      "ks_statistic": 0.02939,
+      "ks_p_value": 0.822178,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 12405.33,
+        "std": 8704.17,
+        "median": 9800.0,
+        "min": 2000.0,
+        "max": 55300.0,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 12347.18,
+        "std": 9551.57,
+        "median": 9600.0,
+        "min": 2000.0,
+        "max": 72500.0,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 4300.00]",
+          "[4300.00, 5680.00]",
+          "[5680.00, 7000.00]",
+          "[7000.00, 8360.00]",
+          "[8360.00, 9800.00]",
+          "[9800.00, 11900.00]",
+          "[11900.00, 14130.00]",
+          "[14130.00, 18320.00]",
+          "[18320.00, 24310.00]",
+          "[24310.00, +inf]"
+        ],
+        "baseline_pct": [
+          0.09733,
+          0.10267,
+          0.09467,
+          0.10533,
+          0.096,
+          0.10133,
+          0.10267,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "production_pct": [
+          0.12091,
+          0.09818,
+          0.09364,
+          0.10273,
+          0.08909,
+          0.10455,
+          0.10091,
+          0.11455,
+          0.07545,
+          0.1
+        ],
+        "psi_components": [
+          0.00511,
+          0.0002,
+          1e-05,
+          7e-05,
+          0.00052,
+          0.0001,
+          3e-05,
+          0.00198,
+          0.00691,
+          0.0
+        ],
+        "bin_edges": [
+          2000.0,
+          4300.0,
+          5680.0,
+          7000.0,
+          8360.0,
+          9800.0,
+          11900.0,
+          14130.0,
+          18320.0,
+          24310.0,
+          55300.0
+        ]
+      }
+    },
+    {
+      "feature_name": "interest_rate",
+      "feature_type": "numerical",
+      "importance": "medium",
+      "psi": 0.89615,
+      "status": "DRIFT",
+      "ks_statistic": 0.42303,
+      "ks_p_value": 0.0,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 10.51,
+        "std": 2.2,
+        "median": 10.51,
+        "min": 4.0,
+        "max": 16.91,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 14.13,
+        "std": 4.45,
+        "median": 13.48,
+        "min": 5.09,
+        "max": 27.29,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 7.72]",
+          "[7.72, 8.65]",
+          "[8.65, 9.20]",
+          "[9.20, 9.91]",
+          "[9.91, 10.51]",
+          "[10.51, 11.04]",
+          "[11.04, 11.69]",
+          "[11.69, 12.38]",
+          "[12.38, 13.44]",
+          "[13.44, +inf]"
+        ],
+        "baseline_pct": [
+          0.1,
+          0.1,
+          0.1,
+          0.09867,
+          0.1,
+          0.1,
+          0.10133,
+          0.1,
+          0.09867,
+          0.10133
+        ],
+        "production_pct": [
+          0.05636,
+          0.04364,
+          0.04455,
+          0.06545,
+          0.05909,
+          0.05091,
+          0.05818,
+          0.05636,
+          0.06182,
+          0.50364
+        ],
+        "psi_components": [
+          0.02502,
+          0.04674,
+          0.04484,
+          0.01363,
+          0.02152,
+          0.03314,
+          0.02394,
+          0.02502,
+          0.01723,
+          0.64507
+        ],
+        "bin_edges": [
+          4.0,
+          7.719,
+          8.654,
+          9.197,
+          9.91,
+          10.51,
+          11.04,
+          11.693,
+          12.384,
+          13.44,
+          16.91
+        ]
+      }
+    },
+    {
+      "feature_name": "home_ownership",
+      "feature_type": "categorical",
+      "importance": "medium",
+      "psi": 0.09123,
+      "status": "STABLE",
+      "ks_statistic": null,
+      "ks_p_value": null,
+      "chi2_statistic": 40.511,
+      "chi2_p_value": 0.0,
+      "baseline_stats": {
+        "top_category": "MORTGAGE",
+        "unique_count": 4,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "top_category": "RENT",
+        "unique_count": 4,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "MORTGAGE",
+          "OTHER",
+          "OWN",
+          "RENT"
+        ],
+        "baseline_pct": [
+          0.43733,
+          0.01867,
+          0.108,
+          0.436
+        ],
+        "production_pct": [
+          0.31909,
+          0.01364,
+          0.08091,
+          0.58636
+        ],
+        "psi_components": [
+          0.03727,
+          0.00158,
+          0.00782,
+          0.04455
+        ]
+      }
+    },
+    {
+      "feature_name": "loan_intent",
+      "feature_type": "categorical",
+      "importance": "high",
+      "psi": 0.1472,
+      "status": "WARNING",
+      "ks_statistic": null,
+      "ks_p_value": null,
+      "chi2_statistic": 63.7392,
+      "chi2_p_value": 0.0,
+      "baseline_stats": {
+        "top_category": "PERSONAL",
+        "unique_count": 6,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "top_category": "MEDICAL",
+        "unique_count": 6,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "DEBTCONSOLIDATION",
+          "EDUCATION",
+          "HOMEIMPROVEMENT",
+          "MEDICAL",
+          "PERSONAL",
+          "VENTURE"
+        ],
+        "baseline_pct": [
+          0.192,
+          0.14533,
+          0.13867,
+          0.15467,
+          0.264,
+          0.10533
+        ],
+        "production_pct": [
+          0.25636,
+          0.10455,
+          0.11727,
+          0.27,
+          0.17,
+          0.08182
+        ],
+        "psi_components": [
+          0.01861,
+          0.01344,
+          0.00358,
+          0.06426,
+          0.04137,
+          0.00594
+        ]
+      }
+    },
+    {
+      "feature_name": "employment_history_length",
+      "feature_type": "numerical",
+      "importance": "low",
+      "psi": 0.03929,
+      "status": "STABLE",
+      "ks_statistic": 0.06339,
+      "ks_p_value": 0.052716,
+      "chi2_statistic": null,
+      "chi2_p_value": null,
+      "baseline_stats": {
+        "mean": 5.17,
+        "std": 4.9,
+        "median": 3.8,
+        "min": 0.0,
+        "max": 28.2,
+        "missing_pct": 0.0
+      },
+      "current_stats": {
+        "mean": 4.87,
+        "std": 4.86,
+        "median": 3.5,
+        "min": 0.0,
+        "max": 27.4,
+        "missing_pct": 0.0
+      },
+      "histogram_data": {
+        "bin_labels": [
+          "[-inf, 0.60]",
+          "[0.60, 1.10]",
+          "[1.10, 1.80]",
+          "[1.80, 2.60]",
+          "[2.60, 3.80]",
+          "[3.80, 5.00]",
+          "[5.00, 6.43]",
+          "[6.43, 8.42]",
+          "[8.42, 11.32]",
+          "[11.32, +inf]"
+        ],
+        "baseline_pct": [
+          0.096,
+          0.092,
+          0.11067,
+          0.096,
+          0.10267,
+          0.09333,
+          0.10933,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "production_pct": [
+          0.13364,
+          0.09636,
+          0.08,
+          0.10091,
+          0.11727,
+          0.11,
+          0.09273,
+          0.09455,
+          0.07273,
+          0.10182
+        ],
+        "psi_components": [
+          0.01245,
+          0.0002,
+          0.00995,
+          0.00024,
+          0.00194,
+          0.00274,
+          0.00274,
+          0.00031,
+          0.00869,
+          3e-05
+        ],
+        "bin_edges": [
+          0.0,
+          0.6,
+          1.1,
+          1.8,
+          2.6,
+          3.8,
+          5.0,
+          6.43,
+          8.42,
+          11.32,
+          28.2
+        ]
+      }
+    }
+  ],
+  "prediction_drift": null,
+  "created_at": "2026-09-25T07:14:43.191098+00:00"
+}

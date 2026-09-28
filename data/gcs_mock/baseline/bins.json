@@ -1,0 +1,275 @@
+{
+  "dataset_name": "credit_risk_default",
+  "created_at": "2026-09-28T02:29:20.646278+00:00",
+  "total_baseline_samples": 750,
+  "num_bins": 10,
+  "features": {
+    "age": {
+      "type": "numerical",
+      "bin_edges": [
+        18.0,
+        23.0,
+        29.0,
+        33.0,
+        36.0,
+        39.0,
+        41.0,
+        44.0,
+        48.0,
+        53.0,
+        73.0
+      ],
+      "baseline_percentages": [
+        0.09467,
+        0.1,
+        0.09067,
+        0.09733,
+        0.116,
+        0.07333,
+        0.12533,
+        0.10133,
+        0.096,
+        0.10533
+      ],
+      "mean": 38.505,
+      "std": 11.16,
+      "median": 39.0,
+      "min": 18.0,
+      "max": 73.0
+    },
+    "annual_income": {
+      "type": "numerical",
+      "bin_edges": [
+        15000.0,
+        22100.0,
+        28880.0,
+        34500.0,
+        41400.0,
+        47900.0,
+        56800.0,
+        67260.0,
+        79280.0,
+        106060.0,
+        389400.0
+      ],
+      "baseline_percentages": [
+        0.09867,
+        0.10133,
+        0.09867,
+        0.09733,
+        0.10267,
+        0.1,
+        0.10133,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "mean": 58732.133,
+      "std": 39752.966,
+      "median": 47900.0,
+      "min": 15000.0,
+      "max": 389400.0
+    },
+    "credit_score": {
+      "type": "numerical",
+      "bin_edges": [
+        450.0,
+        581.0,
+        616.0,
+        643.7,
+        665.0,
+        682.0,
+        697.4,
+        722.3,
+        747.2,
+        782.0,
+        850.0
+      ],
+      "baseline_percentages": [
+        0.09867,
+        0.09867,
+        0.10267,
+        0.09333,
+        0.10267,
+        0.104,
+        0.1,
+        0.1,
+        0.09733,
+        0.10267
+      ],
+      "mean": 681.493,
+      "std": 75.557,
+      "median": 682.0,
+      "min": 450.0,
+      "max": 850.0
+    },
+    "debt_to_income_ratio": {
+      "type": "numerical",
+      "bin_edges": [
+        0.02,
+        0.0779,
+        0.11,
+        0.1487,
+        0.1856,
+        0.2185,
+        0.2534,
+        0.3013,
+        0.3572,
+        0.4142,
+        0.641
+      ],
+      "baseline_percentages": [
+        0.1,
+        0.09733,
+        0.10267,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "mean": 0.234,
+      "std": 0.13,
+      "median": 0.218,
+      "min": 0.02,
+      "max": 0.641
+    },
+    "loan_amount": {
+      "type": "numerical",
+      "bin_edges": [
+        2000.0,
+        4300.0,
+        5680.0,
+        7000.0,
+        8360.0,
+        9800.0,
+        11900.0,
+        14130.0,
+        18320.0,
+        24310.0,
+        55300.0
+      ],
+      "baseline_percentages": [
+        0.09733,
+        0.10267,
+        0.09467,
+        0.10533,
+        0.096,
+        0.10133,
+        0.10267,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "mean": 12405.333,
+      "std": 8698.363,
+      "median": 9800.0,
+      "min": 2000.0,
+      "max": 55300.0
+    },
+    "interest_rate": {
+      "type": "numerical",
+      "bin_edges": [
+        4.0,
+        7.719,
+        8.654,
+        9.197,
+        9.91,
+        10.51,
+        11.04,
+        11.693,
+        12.384,
+        13.44,
+        16.91
+      ],
+      "baseline_percentages": [
+        0.1,
+        0.1,
+        0.1,
+        0.09867,
+        0.1,
+        0.1,
+        0.10133,
+        0.1,
+        0.09867,
+        0.10133
+      ],
+      "mean": 10.509,
+      "std": 2.198,
+      "median": 10.51,
+      "min": 4.0,
+      "max": 16.91
+    },
+    "home_ownership": {
+      "type": "categorical",
+      "categories": [
+        "MORTGAGE",
+        "OTHER",
+        "OWN",
+        "RENT"
+      ],
+      "category_percentages": {
+        "MORTGAGE": 0.43733,
+        "OTHER": 0.01867,
+        "OWN": 0.108,
+        "RENT": 0.436
+      },
+      "top_category": "MORTGAGE"
+    },
+    "loan_intent": {
+      "type": "categorical",
+      "categories": [
+        "DEBTCONSOLIDATION",
+        "EDUCATION",
+        "HOMEIMPROVEMENT",
+        "MEDICAL",
+        "PERSONAL",
+        "VENTURE"
+      ],
+      "category_percentages": {
+        "DEBTCONSOLIDATION": 0.192,
+        "EDUCATION": 0.14533,
+        "HOMEIMPROVEMENT": 0.13867,
+        "MEDICAL": 0.15467,
+        "PERSONAL": 0.264,
+        "VENTURE": 0.10533
+      },
+      "top_category": "PERSONAL"
+    },
+    "employment_history_length": {
+      "type": "numerical",
+      "bin_edges": [
+        0.0,
+        0.6,
+        1.1,
+        1.8,
+        2.6,
+        3.8,
+        5.0,
+        6.43,
+        8.42,
+        11.32,
+        28.2
+      ],
+      "baseline_percentages": [
+        0.096,
+        0.092,
+        0.11067,
+        0.096,
+        0.10267,
+        0.09333,
+        0.10933,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "mean": 5.173,
+      "std": 4.902,
+      "median": 3.8,
+      "min": 0.0,
+      "max": 28.2
+    }
+  }
+}
