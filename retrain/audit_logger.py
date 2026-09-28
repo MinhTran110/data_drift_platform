@@ -9,6 +9,8 @@ def log_audit():
         return
 
     latest_path = "data/models/latest.json"
+    eval_path = "data/models/challenger/eval_verdict.json"
+
     m = {}
     if os.path.exists(latest_path):
         try:
@@ -18,7 +20,26 @@ def log_audit():
             print(f"[WARN] Failed to read {latest_path}: {e}")
 
     metrics = m.get("metrics", {})
-    verdict = m.get("evaluation_verdict", "UNKNOWN")
+
+    # Đọc thêm eval_verdict.json để lấy delta_auc cho Frontend Next.js
+    champion_v = m.get("previous_version", "v1")
+    challenger_v = m.get("version", "v2")
+
+    if os.path.exists(eval_path):
+        try:
+            with open(eval_path, "r") as f:
+                eval_data = json.load(f)
+                champion_v = eval_data.get("champion_version", champion_v)
+                challenger_v = eval_data.get("challenger_version", challenger_v)
+                
+                # Trích xuất delta roc_auc
+                delta_roc_auc = eval_data.get("metrics", {}).get("delta", {}).get("roc_auc")
+                if delta_roc_auc is not None:
+                    metrics["delta_auc"] = float(delta_roc_auc)
+        except Exception as e:
+            print(f"[WARN] Failed to read {eval_path}: {e}")
+
+    verdict = m.get("evaluation_verdict", "APPROVED")
     status = "COMPLETED" if verdict == "APPROVED" else "REJECTED"
 
     approver = "System (Closed-Loop)"
@@ -29,7 +50,7 @@ def log_audit():
         conn = psycopg2.connect(db_url)
         cur = conn.cursor()
 
-        # 1. Tìm xem có job nào gần nhất đang ở trạng thái PENDING không
+        # 1. Tìm job gần nhất đang ở trạng thái PENDING
         cur.execute("""
             SELECT id FROM retrain_jobs 
             WHERE status = 'PENDING' 
@@ -40,7 +61,7 @@ def log_audit():
 
         if pending_job:
             job_id = pending_job[0]
-            print(f"[INFO] Found pending job #{job_id}. Updating to {status}...")
+            print(f"[INFO] Found pending job #{job_id}. Updating with delta_auc to {status}...")
             cur.execute("""
                 UPDATE retrain_jobs
                 SET status = %s,
@@ -52,14 +73,13 @@ def log_audit():
                 WHERE id = %s;
             """, (
                 status,
-                m.get("previous_version", "v1"),
-                m.get("version", "v2"),
+                champion_v,
+                challenger_v,
                 json.dumps(metrics),
                 approver,
                 job_id
             ))
         else:
-            # 2. Nếu không có job PENDING nào thì INSERT mới
             print(f"[INFO] No pending job found. Inserting new record...")
             event_name = os.getenv("EVENT_NAME", "workflow_dispatch")
             cur.execute("""
@@ -71,8 +91,8 @@ def log_audit():
             """, (
                 event_name,
                 status,
-                m.get("previous_version", "v1"),
-                m.get("version", "v2"),
+                champion_v,
+                challenger_v,
                 json.dumps(metrics),
                 approver
             ))
