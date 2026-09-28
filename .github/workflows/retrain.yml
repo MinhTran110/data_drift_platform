@@ -65,53 +65,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           FORCE_APPLIED: ${{ github.event.inputs.force }}
         run: |
-          python -c "
-          import os, json, psycopg2
-
-          db_url = os.getenv('DATABASE_URL')
-          if not db_url:
-              print('[WARN] DATABASE_URL secret not set. Skipping audit logging.')
-              exit(0)
-
-          try:
-              with open('data/models/latest.json') as f:
-                  m = json.load(f)
-          except Exception as e:
-              print(f'[WARN] Could not read latest.json: {e}')
-              m = {}
-
-          metrics = m.get('metrics', {})
-          verdict = m.get('evaluation_verdict', 'UNKNOWN')
-          status = 'COMPLETED' if verdict == 'APPROVED' else 'REJECTED'
-          
-          approver = 'System (Closed-Loop)'
-          if os.getenv('FORCE_APPLIED') == 'true':
-              approver = 'Manual Override (Force)'
-
-          try:
-              conn = psycopg2.connect(db_url)
-              cur = conn.cursor()
-              cur.execute("""
-                  INSERT INTO retrain_jobs (
-                      run_id, triggered_by, status, champion_version,
-                      challenger_version, metrics, approved_by, created_at, updated_at
-                  )
-                  VALUES (NULL, %s, %s, %s, %s, %s, %s, NOW(), NOW());
-              """, (
-                  os.getenv('EVENT_NAME', 'workflow_dispatch'),
-                  status,
-                  m.get('previous_version', 'v1'),
-                  m.get('version', 'v2'),
-                  json.dumps(metrics),
-                  approver
-              ))
-              conn.commit()
-              cur.close()
-              conn.close()
-              print('[SUCCESS] Audit record inserted into Neon DB successfully!')
-          except Exception as db_err:
-              print(f'[ERROR] Failed to insert audit log into database: {db_err}')
-          "
+          python -m retrain.audit_logger
 
       - name: Step 4 - Commit Version Updates (if applicable)
         run: |
