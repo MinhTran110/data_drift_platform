@@ -53,7 +53,7 @@ jobs:
       - name: Install NPM Dependencies
         run: |
           cd web
-          npm ci
+          npm install
 
       - name: Build Web Application
         run: |
