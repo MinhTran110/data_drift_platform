@@ -16,8 +16,21 @@ interface RetrainJobItem {
   created_at: string;
 }
 
+interface ChampionMetadata {
+  version: string;
+  metrics?: {
+    roc_auc?: number;
+    pr_auc?: number;
+    f1_score?: number;
+    log_loss?: number;
+    latency_ms?: number;
+  };
+  promoted_at?: string;
+}
+
 export default function RetrainPage() {
   const [jobs, setJobs] = useState<RetrainJobItem[]>([]);
+  const [champion, setChampion] = useState<ChampionMetadata | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -31,6 +44,9 @@ export default function RetrainPage() {
       if (res.ok) {
         const data = await res.json();
         setJobs(data.jobs || []);
+        if (data.champion) {
+          setChampion(data.champion);
+        }
       }
     } catch (e) {
       console.error("Failed to load retrain jobs:", e);
@@ -107,7 +123,9 @@ export default function RetrainPage() {
             Active Champion
           </span>
           <div className="mt-2 flex items-baseline gap-3">
-            <span className="text-3xl font-extrabold text-slate-900">v1</span>
+            <span className="text-3xl font-extrabold text-slate-900">
+              {champion?.version || "v1"}
+            </span>
             <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
               In Production
             </span>
@@ -119,11 +137,15 @@ export default function RetrainPage() {
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Validation ROC-AUC:</span>
-              <span className="font-mono font-bold text-slate-900">0.8420</span>
+              <span className="font-mono font-bold text-slate-900">
+                {champion?.metrics?.roc_auc !== undefined ? champion.metrics.roc_auc.toFixed(4) : "0.8420"}
+              </span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Validation F1-Score:</span>
-              <span className="font-mono font-medium text-slate-800">0.7812</span>
+              <span className="font-mono font-medium text-slate-800">
+                {champion?.metrics?.f1_score !== undefined ? champion.metrics.f1_score.toFixed(4) : "0.7812"}
+              </span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Hot Reload Mode:</span>

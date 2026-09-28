@@ -2,16 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminAuth } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { triggerGitHubRetrainDispatch } from "@/lib/github";
+import fs from "fs";
+import path from "path";
 
 export async function GET(req: NextRequest) {
+  // 1. Đọc metadata model champion mới nhất từ file latest.json
+  let activeChampion = null;
+  try {
+    const parentPath = path.join(process.cwd(), "..", "data", "models", "latest.json");
+    const currentPath = path.join(process.cwd(), "data", "models", "latest.json");
+    const filePath = fs.existsSync(parentPath) ? parentPath : currentPath;
+
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf-8");
+      activeChampion = JSON.parse(content);
+    }
+  } catch (err) {
+    console.warn("Could not read latest.json:", err);
+  }
+
+  // 2. Lấy danh sách retrain jobs từ database
   try {
     const jobs = await query(
       `SELECT * FROM retrain_jobs ORDER BY created_at DESC LIMIT 50`
     );
-    return NextResponse.json({ jobs });
+    return NextResponse.json({ champion: activeChampion, jobs });
   } catch (error: any) {
     // If table doesn't exist yet in local development, return mock
     return NextResponse.json({
+      champion: activeChampion,
       jobs: [
         {
           id: 1,
