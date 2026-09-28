@@ -1,15 +1,15 @@
 {
   "version": "v2",
-  "previous_version": "v4",
+  "previous_version": "v2",
   "model_path": "v2/model.joblib",
-  "promoted_at": "2026-09-28T02:51:54.129319+00:00",
+  "promoted_at": "2026-09-28T08:15:17.668121+00:00",
   "metrics": {
     "roc_auc": 0.9689,
     "pr_auc": 0.9735,
     "f1_score": 0.9014,
     "log_loss": 0.2095,
-    "latency_ms": 0.016
+    "latency_ms": 0.023
   },
-  "trained_at": "2026-09-28T02:51:52.344819+00:00",
+  "trained_at": "2026-09-28T08:15:15.257614+00:00",
   "evaluation_verdict": "APPROVED"
 }
