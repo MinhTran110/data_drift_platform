@@ -1,15 +1,15 @@
 {
-  "version": "v2",
-  "previous_version": "v2",
-  "model_path": "v2/model.joblib",
-  "promoted_at": "2026-09-29T07:57:08.516885+00:00",
+  "version": "v8",
+  "previous_version": "v7",
+  "model_path": "v8/model.joblib",
+  "promoted_at": "2026-09-29T07:53:10.705836+00:00",
   "metrics": {
-    "roc_auc": 0.9689,
-    "pr_auc": 0.9735,
-    "f1_score": 0.9014,
-    "log_loss": 0.2095,
-    "latency_ms": 0.024
+    "roc_auc": 0.963,
+    "pr_auc": 0.9709,
+    "f1_score": 0.9048,
+    "log_loss": 0.2317,
+    "latency_ms": 0.006
   },
-  "trained_at": "2026-09-29T07:57:05.944800+00:00",
+  "trained_at": "2026-09-29T07:53:09.261570+00:00",
   "evaluation_verdict": "APPROVED"
 }
