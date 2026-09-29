@@ -199,7 +199,7 @@ export default async function DashboardPage() {
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <span className="text-xs font-medium text-slate-500">Active Champion Version</span>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900">v1</span>
+            <span className="text-2xl font-bold text-slate-900">{latestRun?.champion_version || "v8"}</span>
             <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
               Serving In-Prod
             </span>
