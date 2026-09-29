@@ -74,3 +74,62 @@ jobs:
           git add data/models/latest.json || true
           git commit -m "chore(model): promote new champion version [skip ci]" || true
           git push || true
+
+      - name: Step 5 - Send Post-Retrain Telegram Notification
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Telegram credentials missing in GitHub Secrets. Skipping notification."
+            exit 0
+          fi
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            ICON="🎉"
+            TITLE="MODEL RETRAINING & PROMOTION COMPLETED"
+            STATUS_DESC="✅ Champion promoted successfully & Baseline refreshed."
+          else
+            ICON="❌"
+            TITLE="MODEL RETRAINING FAILED"
+            STATUS_DESC="⚠️ Pipeline failed during training, evaluation, or promotion."
+          fi
+
+          WORKFLOW_URL="https://github.com/${REPO}/actions/runs/${RUN_ID}"
+          DASHBOARD_URL="https://data-drift-platform.vercel.app/dashboard"
+
+          MESSAGE="${ICON} <b>${TITLE}</b>"$'\n'
+          MESSAGE+="━━━━━━━━━━━━━━━━━━━━"$'\n'
+          MESSAGE+="<b>Triggered Event:</b> <code>${{ github.event_name }}</code>"$'\n'
+          MESSAGE+="<b>Result:</b> ${STATUS_DESC}"$'\n'
+          MESSAGE+="<b>GitHub Run ID:</b> #${RUN_ID}"$'\n'
+          MESSAGE+="━━━━━━━━━━━━━━━━━━━━"$'\n'
+          MESSAGE+="<i>Closed-loop MLOps automation pipeline</i>"
+
+          PAYLOAD=$(jq -n \
+            --arg chat_id "$TELEGRAM_CHAT_ID" \
+            --arg text "$MESSAGE" \
+            --arg wf_url "$WORKFLOW_URL" \
+            --arg db_url "$DASHBOARD_URL" \
+            '{
+              chat_id: $chat_id,
+              text: $text,
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    { text: "📜 View GitHub Logs", url: $wf_url },
+                    { text: "📊 Open Dashboard", url: $db_url }
+                  ]
+                ]
+              }
+            }')
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
+            
