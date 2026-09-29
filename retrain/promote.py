@@ -91,7 +91,6 @@ def promote_challenger(
     
     # Auto-sync to repo data/models directory for Web/Vercel
     try:
-        import shutil
         repo_models_dir = Path("data/models")
         if repo_models_dir.exists() and repo_models_dir != models_path:
             shutil.copy(latest_manifest, repo_models_dir / "latest.json")
