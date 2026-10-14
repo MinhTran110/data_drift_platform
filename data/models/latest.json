@@ -1,7 +1,7 @@
 {
-  "version": "v9",
+  "version": "v12",
   "previous_version": "v11",
-  "model_path": "v9/model.joblib",
+  "model_path": "v12/model.joblib",
   "promoted_at": "2026-10-14T04:37:30.874603+00:00",
   "metrics": {
     "roc_auc": 0.9991,

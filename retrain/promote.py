@@ -90,7 +90,7 @@ def promote_challenger(
 
     logger.info("Promoted %s to active Champion. Updated %s (Previous: %s)", target_version, latest_manifest, previous_version)
     
-    # Auto-sync to repo data/models directory for Web/Vercel
+    # Auto-sync to repo data/models and web/public directory for Web/Vercel
     try:
         repo_models_dir = Path("data/models")
         if repo_models_dir.exists() and repo_models_dir != models_path:
@@ -100,8 +100,13 @@ def promote_challenger(
             if src_version_dir.exists():
                 shutil.copytree(src_version_dir, dst_version_dir, dirs_exist_ok=True)
             logger.info("Auto-synced %s and latest.json to %s", target_version, repo_models_dir)
+
+        web_public = Path("web/public")
+        web_public.mkdir(parents=True, exist_ok=True)
+        shutil.copy(latest_manifest, web_public / "latest.json")
+        logger.info("Auto-synced latest.json to web/public/latest.json")
     except Exception as sync_err:
-        logger.warning("Could not auto-sync to data/models: %s", sync_err)
+        logger.warning("Could not auto-sync latest.json: %s", sync_err)
 
     # 6. Update Baseline Artifacts (Closed Loop)
     storage_io = StorageIO()

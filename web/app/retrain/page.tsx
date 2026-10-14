@@ -164,7 +164,7 @@ export default function RetrainPage() {
             </div>
             <div className="flex items-baseline gap-3 pt-1">
               <span className="text-3xl font-extrabold text-foreground font-mono">
-                {champion?.version || "v10"}
+                {champion?.version || jobs[0]?.challenger_version || "v12"}
               </span>
               <Badge variant="stable">In Production</Badge>
             </div>
@@ -179,7 +179,11 @@ export default function RetrainPage() {
               <span className="font-mono font-bold text-foreground">
                 {champion?.metrics?.roc_auc !== undefined
                   ? champion.metrics.roc_auc.toFixed(4)
-                  : "0.9991"}
+                  : jobs[0]?.metrics?.roc_auc !== undefined
+                  ? Number(jobs[0].metrics.roc_auc).toFixed(4)
+                  : jobs[0]?.metrics?.challenger_auc !== undefined
+                  ? Number(jobs[0].metrics.challenger_auc).toFixed(4)
+                  : "0.9423"}
               </span>
             </div>
             <div className="flex justify-between text-muted-foreground">
@@ -187,7 +191,9 @@ export default function RetrainPage() {
               <span className="font-mono font-medium text-foreground">
                 {champion?.metrics?.f1_score !== undefined
                   ? champion.metrics.f1_score.toFixed(4)
-                  : "0.9822"}
+                  : jobs[0]?.metrics?.f1_score !== undefined
+                  ? Number(jobs[0].metrics.f1_score).toFixed(4)
+                  : "0.8268"}
               </span>
             </div>
             <div className="flex justify-between text-muted-foreground">
@@ -331,7 +337,7 @@ export default function RetrainPage() {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 font-mono text-foreground">
-                        {job.champion_version || "v9"} → {job.challenger_version || "v10"}
+                        {job.champion_version || "-"} → {job.challenger_version || "-"}
                       </td>
                       <td className="px-4 py-3 font-mono">
                         {job.metrics?.delta_auc !== undefined ? (

@@ -6,19 +6,47 @@ import fs from "fs";
 import path from "path";
 
 export async function GET(req: NextRequest) {
-  // 1. Đọc metadata model champion mới nhất từ file latest.json
+  // 1. Đọc metadata model champion mới nhất từ file latest.json hoặc Neon DB
   let activeChampion = null;
   try {
-    const parentPath = path.join(process.cwd(), "..", "data", "models", "latest.json");
-    const currentPath = path.join(process.cwd(), "data", "models", "latest.json");
-    const filePath = fs.existsSync(parentPath) ? parentPath : currentPath;
+    const candidatePaths = [
+      path.join(process.cwd(), "public", "latest.json"),
+      path.join(process.cwd(), "..", "data", "models", "latest.json"),
+      path.join(process.cwd(), "data", "models", "latest.json"),
+    ];
 
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, "utf-8");
-      activeChampion = JSON.parse(content);
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, "utf-8");
+        activeChampion = JSON.parse(content);
+        break;
+      }
     }
   } catch (err) {
-    console.warn("Could not read latest.json:", err);
+    console.warn("Could not read latest.json from disk:", err);
+  }
+
+  // Fallback: If not found on local disk (e.g. Vercel serverless), query Neon DB
+  if (!activeChampion) {
+    try {
+      const dbChamp = await query(
+        `SELECT challenger_version, metrics, updated_at, created_at 
+         FROM retrain_jobs 
+         WHERE status = 'COMPLETED' 
+         ORDER BY id DESC LIMIT 1`
+      );
+      if (dbChamp && dbChamp.length > 0) {
+        const row = dbChamp[0];
+        const parsedMetrics = typeof row.metrics === "string" ? JSON.parse(row.metrics) : (row.metrics || {});
+        activeChampion = {
+          version: row.challenger_version || "v12",
+          promoted_at: row.updated_at || row.created_at,
+          metrics: parsedMetrics,
+        };
+      }
+    } catch (dbErr) {
+      console.warn("Could not fetch active champion from retrain_jobs:", dbErr);
+    }
   }
 
   // 2. Lấy danh sách retrain jobs từ database

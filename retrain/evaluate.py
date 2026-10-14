@@ -105,6 +105,9 @@ def compare_champion_challenger(
         if champ_model_path.exists():
             champion_pipeline = joblib.load(champ_model_path)
             champion_metrics = evaluate_pipeline(champion_pipeline, X, y)
+        elif champ_meta.get("metrics") and "roc_auc" in champ_meta["metrics"]:
+            logger.info("Champion model artifact not found locally; using cached metrics from latest.json")
+            champion_metrics = champ_meta["metrics"]
 
     if champion_metrics is None:
         # Initial cold start - Challenger is the first model

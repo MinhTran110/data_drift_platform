@@ -62,7 +62,7 @@ def build_pipeline(features_meta: List[Dict[str, Any]]) -> Tuple[Pipeline, List[
 
 
 def determine_next_version(models_dir: Path) -> str:
-    """Finds existing vN directories and returns v{N+1}."""
+    """Finds existing vN directories and checks latest.json to return v{max+1} monotonically."""
     max_v = 0
     if models_dir.exists():
         for d in models_dir.iterdir():
@@ -73,6 +73,28 @@ def determine_next_version(models_dir: Path) -> str:
                         max_v = num
                 except ValueError:
                     pass
+
+    # Always check latest.json manifest to avoid version regression on clean checkouts
+    manifest_candidates = [
+        models_dir / "latest.json",
+        Path("data/models/latest.json"),
+        Path("web/public/latest.json"),
+    ]
+    for c in manifest_candidates:
+        if c.exists():
+            try:
+                with open(c, "r") as f:
+                    manifest = json.load(f)
+                for key in ["version", "previous_version"]:
+                    val = manifest.get(key)
+                    if val and re.match(r"^v\d+$", str(val)):
+                        v_num = int(str(val)[1:])
+                        if v_num > max_v:
+                            max_v = v_num
+            except Exception:
+                pass
+            break
+
     return f"v{max_v + 1}"
 
 
