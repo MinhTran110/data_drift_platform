@@ -1,0 +1,51 @@
+adapter_name: "lending_club"
+version: "1.0.0"
+source_name: "lending_club_open_data"
+description: "Adapter plugin for LendingClub Peer-to-Peer Loan Dataset"
+
+# 1. Direct Column Renaming
+column_mapping:
+  "id": "record_id"
+  "borrower_age": "age"
+  "annual_inc": "annual_income"
+  "loan_amnt": "loan_amount"
+  "int_rate": "interest_rate"
+  "dti": "_raw_dti"
+  "fico_range_low": "credit_score"
+  "home_ownership": "home_ownership"
+  "purpose": "loan_intent"
+  "emp_length_years": "employment_history_length"
+
+# 2. Formula Derivations & Calculations
+derivations:
+  # Normalize LendingClub DTI percentage (e.g. 24.5%) to ratio 0.245
+  debt_to_income_ratio: "_raw_dti / 100.0"
+
+# 3. Categorical Value Normalization
+value_mappings:
+  home_ownership:
+    "RENT": "RENT"
+    "OWN": "OWN"
+    "MORTGAGE": "MORTGAGE"
+    "OTHER": "OTHER"
+    "NONE": "OTHER"
+    "ANY": "OTHER"
+  loan_intent:
+    "debt_consolidation": "DEBTCONSOLIDATION"
+    "credit_card": "DEBTCONSOLIDATION"
+    "home_improvement": "HOMEIMPROVEMENT"
+    "house": "HOMEIMPROVEMENT"
+    "small_business": "VENTURE"
+    "major_purchase": "PERSONAL"
+    "car": "PERSONAL"
+    "vacation": "PERSONAL"
+    "medical": "MEDICAL"
+    "moving": "PERSONAL"
+    "educational": "EDUCATION"
+    "other": "PERSONAL"
+
+# 4. Default Fallbacks if missing
+defaults:
+  age: 35
+  credit_score: 690
+  employment_history_length: 3.0

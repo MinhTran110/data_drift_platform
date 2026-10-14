@@ -239,6 +239,9 @@ export default function IngestPage() {
                   <SelectItem value="kaggle_credit_risk">
                     Kaggle Credit Risk (kaggle_credit_risk.yaml) - person_age, person_income, loan_status
                   </SelectItem>
+                  <SelectItem value="lending_club">
+                    LendingClub P2P Loans (lending_club.yaml) - borrower_age, annual_inc, fico_range_low
+                  </SelectItem>
                   <SelectItem value="crm_sample">
                     CRM Sales System (crm_sample.yaml) - Tiêu đề tiếng Việt, tuổi, thu nhập
                   </SelectItem>
