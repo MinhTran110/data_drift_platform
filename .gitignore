@@ -49,14 +49,20 @@ next-env.d.ts
 gcp-key.json
 
 # Local storage and mock directories
-data/gcs_mock/
+data/gcs_mock/*
+!data/gcs_mock/baseline/
+!data/gcs_mock/baseline/**
+data/incoming/
 data/inference_logs/
 data/reports/
 data/models/v*
 !data/models/v1/
-!data/gcs_mock/
-!data/gcs_mock/baseline/**
+data/models/challenger/
+
+# Logs
+*.log
 
 # OS files
 .DS_Store
 Thumbs.db
+

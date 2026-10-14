@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from typing import Dict, List, Union
 
 import pandas as pd
+import yaml
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,10 +18,14 @@ from serving.model_loader import ModelLoader
 from serving.schemas import (
     BatchPredictionRequest,
     HealthResponse,
+    IngestBatchRequest,
+    IngestPathRequest,
+    IngestResponse,
     PredictionResponse,
     PredictionResult,
     SinglePredictionRequest,
 )
+from worker.adapter import DataAdapter
 
 # Logging configuration
 logging.basicConfig(
@@ -176,6 +182,153 @@ def flush_logs():
         "drained_records": count_before,
         "stats": log_writer.stats,
     }
+
+
+# =============================================================================
+# DATA INGESTION & ADAPTER ENDPOINTS
+# =============================================================================
+
+def _resolve_adapter_config(adapter_name: str) -> str:
+    """Resolves adapter name or path to a valid YAML/JSON config file."""
+    if Path(adapter_name).exists():
+        return adapter_name
+    candidate = Path("config/adapters") / f"{adapter_name.replace('.yaml', '')}.yaml"
+    if candidate.exists():
+        return str(candidate)
+    candidate_json = Path("config/adapters") / f"{adapter_name.replace('.json', '')}.json"
+    if candidate_json.exists():
+        return str(candidate_json)
+    raise HTTPException(status_code=404, detail=f"Adapter config '{adapter_name}' not found in config/adapters/")
+
+
+@app.get("/ingest/adapters", tags=["Data Ingestion & Adapters"])
+def list_adapters():
+    """Lists all available data adapter mapping templates."""
+    adapter_dir = Path("config/adapters")
+    results = []
+    if adapter_dir.exists():
+        for f in adapter_dir.glob("*.yaml"):
+            try:
+                with open(f, "r", encoding="utf-8") as fp:
+                    data = yaml.safe_load(fp)
+                    results.append({
+                        "name": f.stem,
+                        "file": str(f),
+                        "source_name": data.get("source_name", f.stem),
+                        "description": data.get("description", ""),
+                        "mapped_columns": list(data.get("column_mapping", {}).keys()),
+                        "derivations": list(data.get("derivations", {}).keys()),
+                    })
+            except Exception as e:
+                logger.warning("Error reading adapter %s: %s", f, e)
+    return {"adapters": results}
+
+
+@app.post("/ingest/path", response_model=IngestResponse, tags=["Data Ingestion & Adapters"])
+def ingest_from_path(request_data: IngestPathRequest):
+    """
+    Ingests and harmonizes data from a local file path, glob pattern, or DB connection.
+    Automatically standardizes schema, runs model scoring, and flushes to Hive partitions.
+    """
+    cfg_path = _resolve_adapter_config(request_data.adapter_name)
+    adapter = DataAdapter()
+
+    try:
+        result = adapter.run_ingest(
+            source=request_data.source,
+            config_path=cfg_path,
+            score=request_data.auto_score,
+            watermark_file=request_data.watermark_file,
+        )
+    except Exception as e:
+        logger.error("Ingestion error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if result.get("status") == "NO_NEW_DATA":
+        return IngestResponse(
+            status="NO_NEW_DATA",
+            record_count=0,
+            sources=result.get("sources", [request_data.source]),
+            saved_partition="",
+            sample_records=[],
+        )
+
+    return IngestResponse(
+        status="SUCCESS",
+        record_count=result["record_count"],
+        sources=result["sources"],
+        saved_partition=result["saved_partition"],
+    )
+
+
+@app.post("/ingest/batch", response_model=IngestResponse, tags=["Data Ingestion & Adapters"])
+def ingest_raw_batch(request_data: IngestBatchRequest):
+    """
+    Ingests an in-memory JSON array of raw records in external format.
+    Transforms them via the selected adapter, scores them, and persists to storage.
+    """
+    if not request_data.records:
+        raise HTTPException(status_code=400, detail="Empty records list")
+
+    cfg_path = _resolve_adapter_config(request_data.adapter_name)
+    adapter = DataAdapter()
+    raw_df = pd.DataFrame(request_data.records)
+
+    try:
+        clean_df = adapter.transform(raw_df, cfg_path)
+        if request_data.auto_score:
+            clean_df = adapter.score_with_model(clean_df)
+        saved_path = adapter.save_to_partitions(clean_df)
+    except Exception as e:
+        logger.error("Batch ingest error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    samples = clean_df.head(3).to_dict(orient="records")
+    return IngestResponse(
+        status="SUCCESS",
+        record_count=len(clean_df),
+        sources=["in_memory_json_batch"],
+        saved_partition=saved_path,
+        sample_records=samples,
+    )
+
+
+@app.post("/ingest/file", response_model=IngestResponse, tags=["Data Ingestion & Adapters"])
+async def ingest_uploaded_file(
+    request: Request,
+    filename: str = "uploaded_data.csv",
+    adapter_name: str = "crm_sample",
+    auto_score: bool = True,
+):
+    """
+    Uploads a raw data file (CSV, Excel, Parquet, JSONL) via binary body payload.
+    Example: curl -X POST 'http://localhost:8000/ingest/file?filename=data.csv&adapter_name=crm_sample' --data-binary @data.csv
+    """
+    data_bytes = await request.body()
+    if not data_bytes:
+        raise HTTPException(status_code=400, detail="Empty file payload")
+
+    cfg_path = _resolve_adapter_config(adapter_name)
+    adapter = DataAdapter()
+
+    try:
+        raw_df = adapter.extract_from_bytes(data_bytes, filename=filename)
+        clean_df = adapter.transform(raw_df, cfg_path)
+        if auto_score:
+            clean_df = adapter.score_with_model(clean_df)
+        saved_path = adapter.save_to_partitions(clean_df)
+    except Exception as e:
+        logger.error("File upload ingest error: %s", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    samples = clean_df.head(3).to_dict(orient="records")
+    return IngestResponse(
+        status="SUCCESS",
+        record_count=len(clean_df),
+        sources=[filename],
+        saved_partition=saved_path,
+        sample_records=samples,
+    )
 
 
 if __name__ == "__main__":

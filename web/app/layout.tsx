@@ -35,6 +35,9 @@ export default function RootLayout({
               <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
                 Dashboard
               </Link>
+              <Link href="/ingest" className="hover:text-blue-600 transition-colors">
+                Data Ingestion
+              </Link>
               <Link href="/retrain" className="hover:text-blue-600 transition-colors">
                 Model Retraining & Governance
               </Link>

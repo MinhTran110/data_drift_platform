@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r /app/serving/requirements.txt
 
 # Copy source code and config
 COPY config/ /app/config/
+COPY worker/ /app/worker/
 COPY serving/ /app/serving/
 
 EXPOSE 8000

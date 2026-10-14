@@ -5,15 +5,19 @@
   <b><a href="README.md#english-version">🇬🇧 English Version</a></b> &nbsp; | &nbsp; <b><a href="README.vn.md">🇻🇳 Bản Tiếng Việt</a></b>
 </p>
 
-[![CI Pipeline](https://github.com/your-org/drift-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/drift-platform/actions/workflows/ci.yml)
-[![Drift Monitoring](https://github.com/your-org/drift-platform/actions/workflows/drift.yml/badge.svg)](https://github.com/your-org/drift-platform/actions/workflows/drift.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/your-org/drift-platform/actions/workflows/ci.yml"><img src="https://github.com/your-org/drift-platform/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline"></a>
+  <a href="https://github.com/your-org/drift-platform/actions/workflows/drift.yml"><img src="https://github.com/your-org/drift-platform/actions/workflows/drift.yml/badge.svg" alt="Drift Monitoring"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
+
+---
 
 Nền tảng MLOps toàn diện, tối ưu chi phí nhằm **giám sát theo lô cận thời gian thực (Near-Real-Time Batch Monitoring)** cho các mô hình Machine Learning dữ liệu bảng (tabular data), tự động phát hiện trôi dạt dữ liệu (data drift), gửi cảnh báo Telegram thông minh (có chống spam & cooldown 12h), và tự động hóa quy trình tái huấn luyện khép vòng (Champion vs. Challenger với cơ chế rollback an toàn).
 
 ---
 
-## Mục lục
+### Mục lục
 1. [Bối cảnh & Mục tiêu dự án](#bối-cảnh--mục-tiêu-dự-án)
 2. [Kiến trúc & Luồng hoạt động hệ thống](#kiến-trúc--luồng-hoạt-động-hệ-thống)
 3. [Cơ sở thống kê định lượng Drift](#cơ-sở-thống-kê-định-lượng-drift)
@@ -21,7 +25,8 @@ Nền tảng MLOps toàn diện, tối ưu chi phí nhằm **giám sát theo lô
    - [1. Phục vụ mô hình suy luận (`serving/`)](#1-phục-vụ-mô-hình-suy-luận-serving)
    - [2. Bộ xử lý Drift theo lô (`worker/`)](#2-bộ-xử-lý-drift-theo-lô-worker)
    - [3. Tái huấn luyện & Quản trị mô hình (`retrain/`)](#3-tái-huấn-luyện--quản-trị-mô-hình-retrain)
-   - [4. Web Dashboard & Trạm điều khiển (`web/`)](#4-web-dashboard--trạm-điều-khiển-web)
+   - [4. Phân hệ Thu nạp & Chuẩn hóa Đa nguồn (`worker/adapter.py`)](#4-phân-hệ-thu-nạp--chuẩn-hóa-dữ-liệu-đa-nguồn-workeradapterpy)
+   - [5. Web Dashboard & Trạm điều khiển (`web/`)](#5-web-dashboard--trạm-điều-khiển-web)
 5. [Đánh giá thực nghiệm hệ thống (Benchmark)](#đánh-giá-thực-nghiệm-hệ-thống-benchmark)
 6. [Hướng dẫn cài đặt & khởi chạy nhanh](#hướng-dẫn-cài-đặt--khởi-chạy-nhanh)
 7. [Cấu trúc thư mục dự án](#cấu-trúc-thư-mục-dự-án)
@@ -36,10 +41,11 @@ Khi một mô hình Machine Learning được triển khai vào môi trường s
 ### Mục tiêu cốt lõi
 1. **Tự động thu thập log suy luận**: Bộ đệm bất đồng bộ (in-memory buffer) ghi nhận log với độ trễ suy luận gần như bằng 0, xả định kỳ các file Parquet phân vùng theo chuẩn Hive lên Google Cloud Storage (GCS) hoặc mock storage.
 2. **Định lượng Drift đa chiều**: Đo lường Population Stability Index (PSI), kiểm định 2 mẫu Kolmogorov-Smirnov (KS-test cho biến liên tục), kiểm định Chi-Square (cho biến phân loại), và Prediction Drift trên xác suất đầu ra của mô hình.
-3. **Trực quan hóa trên Web Dashboard**: Giao diện Next.js hiển thị biểu đồ xu hướng PSI lịch sử, bảng phân tích trạng thái từng feature, và biểu đồ **Histogram chồng (Baseline vs Production)** chi tiết.
+3. **Trực quan hóa trên Web Dashboard**: Giao diện Next.js hiển thị biểu đồ xu hướng PSI lịch sử, bảng phân tích trạng thái từng feature, biểu đồ **Histogram chồng (Baseline vs Production)** chi tiết, và **Trung tâm Nạp dữ liệu kéo thả** (`/ingest`).
 4. **Cảnh báo thông minh qua Telegram**: Gửi cảnh báo tức thời kèm cửa sổ **Cooldown 12 giờ** và mã băm chống trùng lặp (Deduplication Hash) để loại bỏ tình trạng quá tải thông báo (Alert Fatigue).
 5. **Tái huấn luyện khép vòng (Closed-Loop)**: Kích hoạt tự động qua GitHub Actions (`repository_dispatch`), đánh giá đối đầu Champion vs. Challenger khắt khe, làm mới bộ tham chiếu Baseline và hỗ trợ rollback tức thì.
-6. **Đánh giá hệ thống thực nghiệm**: Đo lường độ nhạy (sensitivity), độ trễ phát hiện (detection delay), và tỷ lệ báo động giả (false alarm rate) đối chuẩn tương đương 1:1 với thư viện Evidently AI.
+6. **Thu nạp dữ liệu đa nguồn (Multi-Source Ingestion)**: Hỗ trợ nạp dữ liệu mẻ từ file Excel/CSV tiếng Việt, bảng SQL Database, hoặc API với cơ chế tự động đổi tên cột, tính toán thuộc tính phái sinh và chấm điểm mô hình.
+7. **Đánh giá hệ thống thực nghiệm**: Đo lường độ nhạy (sensitivity), độ trễ phát hiện (detection delay), và tỷ lệ báo động giả (false alarm rate) đối chuẩn tương đương 1:1 với thư viện Evidently AI.
 
 > [!NOTE]
 > **Thuật ngữ chuẩn xác**: Hệ thống vận hành theo cơ chế **Near-Real-Time / Batch** (chu kỳ lô 6 giờ hoặc hàng ngày), **KHÔNG PHẢI real-time streaming**. Cách tiếp cận này giúp tiết kiệm 95% chi phí hạ tầng (tận dụng serverless trên GitHub Actions, GCS, Vercel, Neon), đồng thời đảm bảo cỡ mẫu thống kê ($N \ge 100$) đủ lớn để các phép kiểm định đạt độ tin cậy toán học cao nhất.
@@ -50,14 +56,21 @@ Khi một mô hình Machine Learning được triển khai vào môi trường s
 
 ```mermaid
 flowchart TD
-    subgraph Serving["1. Phục vụ mô hình (FastAPI Container :8000)"]
+    subgraph Ingestion["1. Thu nạp & Chuẩn hóa đa nguồn"]
+        RawFiles["File bên ngoài<br/>(CSV, Excel, Parquet)"] --> Adapter["DataAdapter (worker/adapter.py)<br/>• Đổi tên cột chuẩn<br/>• Tính tuổi, thu nhập năm...<br/>• Map nhãn (Thuê -> RENT)<br/>• Chấm điểm model Champion"]
+        SQL["Cơ sở dữ liệu SQL<br/>(Truy vấn theo cửa sổ)"] --> Adapter
+        WebUpload["Giao diện Web UI<br/>(/ingest kéo thả)"] --> Adapter
+    end
+
+    subgraph Serving["2. Phục vụ mô hình (FastAPI :8000)"]
         Client["Client / Live Traffic"] -->|POST /predict| API["FastAPI Service"]
-        API -->|In-memory Buffer| Buffer["LogWriter Buffer<br/>(200 items / 15s)"]
+        API -->|In-memory Buffer| Buffer["LogWriter Buffer"]
         Buffer -->|Xả mẻ Parquet| GCS[("Lưu trữ GCS / Mock<br/>year=YYYY/month=MM/day=DD/hour=HH/*.parquet")]
+        Adapter -->|Lưu Parquet chuẩn| GCS
         ModelLoader["Model Loader<br/>(Zero-Downtime Hot Reload)"] -.->|Nạp Champion mới| API
     end
 
-    subgraph Worker["2. Batch Drift Worker (GitHub Actions Cron 6h)"]
+    subgraph Worker["3. Batch Drift Worker (GitHub Actions Cron 6h)"]
         Cron["Cron 6h: drift.yml"] --> RunPy["worker/run.py"]
         GCS -->|Quét log 6h qua| RunPy
         Baseline[("baseline/bins.json<br/>baseline/ref_sample.parquet")] --> RunPy
@@ -66,15 +79,15 @@ flowchart TD
         Metrics --> HMAC["Ký số HMAC-SHA256"]
     end
 
-    subgraph ControlPlane["3. Trạm điều khiển & Cảnh báo (Next.js 14 / Neon DB)"]
+    subgraph ControlPlane["4. Trạm điều khiển & Cảnh báo (Next.js 14 / Neon DB)"]
         HMAC -->|POST /api/drift/ingest| IngestAPI["Ingest Route"]
         IngestAPI --> DB[("Neon Postgres DB")]
         IngestAPI --> RuleEngine["Rule Engine & Cooldown 12h"]
         RuleEngine -->|Gửi cảnh báo hợp lệ| TelegramBot["Telegram Bot API<br/>[Nút 🚀 Approve Retrain]"]
-        DB --> DashboardUI["Web Dashboard<br/>• PSI Trend Chart<br/>• Histogram Overlay"]
+        DB --> DashboardUI["Web Dashboard<br/>• PSI Trend Chart<br/>• Histogram Overlay<br/>• Data Ingestion (/ingest)"]
     end
 
-    subgraph Retrain["4. Tái huấn luyện khép vòng (GitHub Actions: retrain.yml)"]
+    subgraph Retrain["5. Tái huấn luyện khép vòng (GitHub Actions: retrain.yml)"]
         TelegramBot -->|Nhấn nút Duyệt| Webhook["/api/telegram"]
         DashboardUI -->|Bấm Retrain thủ công| RetrainAPI["/api/retrain"]
         RuleEngine -.->|Tự động nếu severe >= 2| RetrainAPI
@@ -127,11 +140,17 @@ Theo dõi trực tiếp sự dịch chuyển trong phân phối điểm xác su�
 ## Các phân hệ thành phần
 
 ### 1. Phục vụ mô hình suy luận (`serving/`)
-* **FastAPI Endpoints**:
+* **FastAPI Core Endpoints**:
   * `POST /predict`: Hỗ trợ suy luận đơn lẻ và suy luận theo lô, trả về điểm số và nhãn dự đoán.
   * `GET /health`: Báo cáo phiên bản model active, số lượng bản ghi trong RAM buffer và thời gian hoạt động (uptime).
   * `POST /admin/reload-model`: Kích hoạt hot-reload tức thì từ file `latest.json`.
   * `POST /admin/flush`: Ép bộ đệm ghi ngay lập tức dữ liệu ra lưu trữ phân vùng.
+* **FastAPI Ingestion Endpoints (Cổng nạp mẻ đa nguồn)**:
+  * `GET /ingest/adapters`: Liệt kê các cấu hình ánh xạ sẵn có (kèm mô tả và cột mapping).
+  * `POST /ingest/path`: Nạp dữ liệu từ đường dẫn file trên máy, mẫu glob, hoặc chuỗi kết nối Database SQL.
+  * `POST /ingest/batch`: Nhận mảng JSON các bản ghi thô từ microservice bên ngoài.
+  * `POST /ingest/file`: Tải file nhị phân trực tiếp (`.csv`, `.xlsx`, `.parquet`, `.jsonl`).
+  * **Giao diện Swagger tương tác**: Mở trực tiếp tại `http://localhost:8000/docs`.
 * **Bộ đệm ghi log Parquet (`log_writer.py`)**:
   * Chạy trên thread riêng biệt, tự động xả dữ liệu sau mỗi 15 giây hoặc khi tích lũy đủ 200 bản ghi.
   * Phân vùng theo chuẩn Hive: `inference_logs/year=YYYY/month=MM/day=DD/hour=HH/inference_{uuid}.parquet`.
@@ -149,14 +168,28 @@ Theo dõi trực tiếp sự dịch chuyển trong phân phối điểm xác su�
 * **Huấn luyện Challenger (`train.py`)**: Gộp dữ liệu huấn luyện ban đầu với log suy luận 7 ngày gần nhất trên production, xây dựng pipeline Scikit-Learn (ColumnTransformer + HistGradientBoostingClassifier) và lưu phiên bản ứng viên `v{N+1}`.
 * **Cổng đánh giá Champion vs Challenger (`evaluate.py`)**: Đánh giá độc lập trên tập Hold-out Validation Split (so sánh ROC-AUC, PR-AUC, F1-Score, Log-Loss, Latency). Challenger chỉ được duyệt khi không làm tụt hiệu năng quá $\Delta \le 0.01$.
 * **Thăng cấp & Làm mới Baseline (`promote.py`)**: Cập nhật con trỏ `latest.json`, **tự động tính toán và lưu mới file `baseline/bins.json` và `baseline/ref_sample.parquet`** theo phân phối của mô hình mới (khép kín vòng đời giám sát), gọi reload tới Serving và hỗ trợ hoàn nguyên tức thì với cờ `--rollback`.
-* **Ghi nhận Audit Log tự động (`audit_logger.py`)**: Tự động đồng bộ lịch sử retraining và chỉ số `delta_auc` vào cơ sở dữ liệu Neon Postgres.
+* **Ghi nhận Audit Log tự động (`audit_logger.py`)**: Tự động đồng bộ lịch sử retraining và chỉ số `delta_auc` vào cơ sở dữ liệu Neon PostgreSQL.
 
-### 4. Web Dashboard & Trạm điều khiển (`web/`)
+### 4. Phân hệ Thu nạp & Chuẩn hóa Dữ liệu đa nguồn (`worker/adapter.py`)
+* **Trích xuất đa nguồn**:
+  * Đọc định dạng `.csv`, `.tsv`, `.xlsx`, `.parquet`, `.jsonl`.
+  * Quét thư mục theo mẫu glob kèm **Mã băm MD5 Watermark** loại bỏ hoàn toàn việc đọc trùng lặp file.
+  * Truy vấn Database SQL (PostgreSQL, SQLite) có tham số hóa cửa sổ thời gian (`:window_start`, `:window_end`).
+* **Chuẩn hóa & Tái cấu trúc tự động**:
+  * Đổi tên cột từ các nguồn lạ về schema chuẩn [`config/features.json`](file:///home/admin/data_drift_platform/config/features.json).
+  * Thực thi công thức phái sinh (ví dụ: `age = 2026 - nam_sinh`, `annual_income = luong_thang * 12`).
+  * Chuẩn hóa giá trị phân loại (`"Thuê nhà"` hoặc `1` $\rightarrow$ `"RENT"`).
+  * Ép kiểu chặt chẽ (numerical $\rightarrow$ `float64`, categorical $\rightarrow$ `str`).
+* **Tự động chấm điểm mô hình (Model Scoring)**: Tự động nạp Champion model để dự đoán `prediction_score` và `prediction_label` cho mẻ dữ liệu thô.
+* **Ghi phân vùng chuẩn Hive**: Tự động xả ra các file Parquet phân vùng theo giờ: `inference_logs/year=.../hour=.../` cho Worker tiêu thụ.
+
+### 5. Web Dashboard & Trạm điều khiển (`web/`)
 * Xây dựng trên nền tảng **Next.js 14**, **Tailwind CSS**, và **PostgreSQL (Neon Serverless)**.
 * Đã triển khai trên **Vercel**: `https://data-drift-platform.vercel.app/dashboard`.
 * **Các trang chức năng**:
   * `/dashboard`: Tổng quan KPI, thẻ Champion Model, biểu đồ SVG theo dõi PSI lịch sử (`PsiTrendChart`), và bảng feature phân loại.
   * `/dashboard/[feature]`: Soi chi tiết từng thuộc tính với **Histogram chồng Baseline vs Production** (`HistogramOverlay`), p-value và các chỉ số thống kê.
+  * `/ingest`: **Trung tâm Nạp dữ liệu** với giao diện kéo thả file, chọn template Adapter dropdown, và hướng dẫn cURL/CLI.
   * `/retrain`: Trung tâm quản trị mô hình, hiển thị lịch sử các lần retrain, nút bấm kích hoạt workflow thủ công và nút rollback.
 * **Cơ chế chống spam thông minh (`lib/rules.ts`)**: Áp dụng thời gian Cooldown 12 giờ và mã băm SHA-256 chống gửi lặp cảnh báo.
 * **Tương tác Telegram Bot (`lib/telegram.ts` & `app/api/telegram/route.ts`)**: Bắn thông báo Markdown HTML kèm nút bấm inline `[🚀 Approve Retrain]` để kỹ sư phê duyệt tái huấn luyện ngay trên điện thoại.
@@ -173,7 +206,7 @@ Hệ thống đã trải qua quy trình đánh giá thực nghiệm toàn diện
 | **Độ nhạy phát hiện (Sensitivity / Recall)** | **100.00%** (20 / 20 lô trôi dạt) | $\ge 95.0\%$ khi có trôi dạt nghiêm trọng |
 | **Độ trễ phát hiện trung bình (Detection Delay)** | **3.0 Giờ** | $\frac{\text{Chu kỳ batch (6h)}}{2}$ |
 | **Độ tương đồng với Evidently AI** | **Khớp chính xác ($< 0.1\%$)** | Đối chuẩn 1:1 trong `tests/test_metrics.py` |
-| **Bộ kiểm thử tự động (Unit Tests)** | **14/14 tests PASS (100%)** | Toàn bộ logic toán học và dữ liệu đều xanh |
+| **Bộ kiểm thử tự động (Unit Tests)** | **20/20 tests PASS (100%)** | Toàn bộ logic toán học, chất lượng dữ liệu và phân hệ Adapter |
 
 ---
 
@@ -184,7 +217,7 @@ Hệ thống đã trải qua quy trình đánh giá thực nghiệm toàn diện
 * Node.js 18+ và npm
 * Make
 
-### 2. Cài đặt môi trường
+### 2. Cài đặt môi trường & thư viện
 ```bash
 # Clone repository
 git clone https://github.com/your-org/drift-platform.git
@@ -192,6 +225,9 @@ cd drift-platform
 
 # Khởi tạo thư mục và file cấu hình môi trường
 make setup
+
+# Cài đặt toàn bộ thư viện vào môi trường .venv độc lập (không phụ thuộc Conda)
+make install
 ```
 
 ### 3. Sinh dữ liệu chuẩn & Seed Champion Model v1
@@ -200,33 +236,27 @@ make setup
 make seed
 ```
 
-### 4. Khởi động dịch vụ Model Serving
+### 4. Khởi động dịch vụ Model Serving (FastAPI)
 ```bash
-# Chạy FastAPI server trên cổng 8000
+# Chạy FastAPI server trên cổng 8000 kèm giao diện Swagger UI tại /docs
 make serve
 ```
 
-### 5. Chạy Worker định lượng Drift
+### 5. Nạp dữ liệu thô từ bên ngoài qua Adapter (CSV/Excel/SQL)
+```bash
+# Chuẩn hóa file CRM tiếng Việt, tự động chấm điểm và xả vào phân vùng Parquet
+make ingest-file FILE=data/incoming/crm_sales_october.csv CONFIG=config/adapters/crm_sample.yaml
+```
+
+### 6. Chạy Worker định lượng Drift
 ```bash
 # Quét log suy luận phân vùng trong 6 giờ qua và tính toán drift
 make worker-run
 ```
 
-### 6. Bơm trôi dạt nhân tạo để kiểm thử
+### 7. Chạy bộ kiểm thử tự động
 ```bash
-# Bơm mean shift, categorical shift và prediction drift vào log
-make simulate-drift
-```
-
-### 7. Chạy quy trình Tái huấn luyện khép vòng
-```bash
-# Huấn luyện challenger, đối đầu champion và thăng cấp
-make retrain
-```
-
-### 8. Chạy bộ kiểm thử tự động
-```bash
-# Chạy toàn bộ 14 unit test toán học và chất lượng dữ liệu
+# Chạy toàn bộ 20 unit test toán học, chất lượng dữ liệu và Adapter
 make test
 ```
 
@@ -236,8 +266,8 @@ make test
 
 ```
 drift-platform/
-├── README.md                        # Tài liệu tiếng Anh
-├── README.vn.md                     # Tài liệu tiếng Việt
+├── README.md                        # Tài liệu hướng dẫn chính (Song ngữ Anh - Việt)
+├── README.vn.md                     # Tài liệu tiếng Việt độc lập
 ├── .gitignore                       # Quy tắc bỏ qua file git
 ├── .env.example                     # Mẫu biến môi trường
 ├── Makefile                         # Lệnh thao tác nhanh CLI
@@ -245,19 +275,23 @@ drift-platform/
 │
 ├── config/
 │   ├── rules.yaml                   # Ngưỡng PSI, min_samples, cooldown 12h, retrain mode
-│   └── features.json                # Khai báo schema: kiểu dữ liệu, importance, valid ranges
+│   ├── features.json                # Khai báo schema: kiểu dữ liệu, importance, valid ranges
+│   └── adapters/                    # Cấu hình ánh xạ dữ liệu thu nạp
+│       ├── crm_sample.yaml          # Mẫu ánh xạ file CRM phòng kinh doanh (tiêu đề tiếng Việt)
+│       └── database_sample.yaml     # Mẫu ánh xạ trích xuất dữ liệu từ Database SQL
 │
-├── serving/                         # FastAPI + ghi log phân vùng Parquet lên GCS
+├── serving/                         # FastAPI + ghi log phân vùng Parquet + cổng thu nạp mẻ
 │   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py                      # App lifespan, /predict, /health, /admin
-│   ├── schemas.py                   # Pydantic schema + PyArrow schema
+│   ├── requirements.txt             # Serving dependencies
+│   ├── main.py                      # App lifespan, /predict, /health, /ingest/*
+│   ├── schemas.py                   # Pydantic schema + PyArrow schema + Ingest schemas
 │   ├── log_writer.py                # In-memory buffer + flush Parquet định kỳ
 │   └── model_loader.py              # Hot-reload atomic zero-downtime từ latest.json
 │
-├── worker/                          # Drift Worker (GitHub Actions Cron 6h)
+├── worker/                          # Drift Worker & Adapter (GitHub Actions Cron 6h)
 │   ├── requirements.txt
 │   ├── __init__.py
+│   ├── adapter.py                   # Thu nạp đa nguồn, tái cấu trúc & chấm điểm mô hình
 │   ├── gcs_io.py                    # Trừu tượng hóa lưu trữ GCS & local mock
 │   ├── metrics.py                   # PSI, KS-test, Chi-square, prediction drift
 │   ├── quality.py                   # Kiểm tra null rate, OOV, range bounds
@@ -278,11 +312,12 @@ drift-platform/
 │   ├── tsconfig.json
 │   ├── tailwind.config.ts
 │   ├── app/
-│   │   ├── layout.tsx
+│   │   ├── layout.tsx               # Root layout với thanh điều hướng (Dashboard, Ingest, Retrain)
 │   │   ├── page.tsx                 # Redirect → /dashboard
 │   │   ├── dashboard/
 │   │   │   ├── page.tsx             # Tổng quan: KPI, biểu đồ xu hướng PSI
 │   │   │   └── [feature]/page.tsx   # Chi tiết feature: Histogram chồng Baseline vs Prod
+│   │   ├── ingest/page.tsx          # Trung tâm Nạp dữ liệu: Kéo thả file, Swagger UI, cURL
 │   │   ├── retrain/page.tsx         # Lịch sử retrain jobs + nút trigger + rollback
 │   │   └── api/
 │   │       ├── drift/ingest/route.ts   # Nhận summary từ worker (xác thực HMAC)
@@ -309,6 +344,7 @@ drift-platform/
 │   └── generate_docx.py             # Sinh tài liệu Word tích hợp mã nguồn Mermaid
 │
 ├── tests/
+│   ├── test_adapter.py              # Kiểm thử trích xuất file, glob watermark và Database SQL
 │   ├── test_metrics.py              # Đối chuẩn PSI/KS với thư viện Evidently AI
 │   ├── test_quality.py              # Kiểm tra null rate, OOV, range check
 │   ├── test_baseline_build.py       # Kiểm tra quantile binning
@@ -317,5 +353,5 @@ drift-platform/
 └── .github/workflows/
     ├── drift.yml                    # Cron mỗi 6 giờ quét log và định lượng drift
     ├── retrain.yml                  # Tự động huấn luyện, đánh giá, promote và thông báo
-    └── ci.yml                       # Flake8 lint + Pytest 14 tests + Next.js build
+    └── ci.yml                       # Flake8 lint + Pytest 20 tests + Next.js build
 ```

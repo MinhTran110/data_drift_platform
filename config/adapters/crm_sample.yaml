@@ -1,0 +1,44 @@
+source_name: "crm_sales_system"
+description: "Adapter for legacy sales/CRM exports with Vietnamese column headers"
+
+# 1. Direct Column Renaming
+column_mapping:
+  "ma_ho_so": "record_id"
+  "nam_sinh": "_birth_year"            # Temporary column for derivation
+  "luong_thang": "_monthly_income"     # Temporary column for derivation
+  "diem_fio": "credit_score"
+  "ty_le_no_dti": "debt_to_income_ratio"
+  "so_tien_vay": "loan_amount"
+  "lai_suat": "interest_rate"
+  "tinh_trang_nha_o": "home_ownership"
+  "muc_dich_vay": "loan_intent"
+  "tham_nien_lam_viec": "employment_history_length"
+
+# 2. Formula Derivations & Calculations
+derivations:
+  age: "2026 - _birth_year"
+  annual_income: "_monthly_income * 12"
+
+# 3. Categorical Value Normalization
+value_mappings:
+  home_ownership:
+    "Thuê trọ": "RENT"
+    "Thuê nhà": "RENT"
+    "Nhà riêng": "OWN"
+    "Thế chấp ngân hàng": "MORTGAGE"
+    "Khác": "OTHER"
+    1: "RENT"
+    2: "OWN"
+    3: "MORTGAGE"
+  loan_intent:
+    "Tiêu dùng": "PERSONAL"
+    "Học tập": "EDUCATION"
+    "Y tế": "MEDICAL"
+    "Khởi nghiệp": "VENTURE"
+    "Sửa nhà": "HOMEIMPROVEMENT"
+    "Đảo nợ": "DEBTCONSOLIDATION"
+
+# 4. Default fallbacks if columns are missing
+defaults:
+  debt_to_income_ratio: 0.25
+  employment_history_length: 2.0

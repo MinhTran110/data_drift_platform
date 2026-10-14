@@ -56,6 +56,27 @@ class HealthResponse(BaseModel):
     uptime_seconds: float
 
 
+class IngestPathRequest(BaseModel):
+    source: str = Field(..., description="File path (e.g. data/incoming/crm_sales_october.csv), glob pattern, or DB connection string")
+    adapter_name: str = Field(default="crm_sample", description="Name of template in config/adapters/ (e.g. 'crm_sample') or path to YAML config")
+    auto_score: bool = Field(default=True, description="Whether to automatically score records with Champion model")
+    watermark_file: Optional[str] = Field(default="data/watermarks.json", description="Watermark file path for deduplication")
+
+
+class IngestBatchRequest(BaseModel):
+    records: List[dict] = Field(..., description="List of raw data records in external format")
+    adapter_name: str = Field(default="crm_sample", description="Name of template in config/adapters/ or path to YAML config")
+    auto_score: bool = Field(default=True, description="Whether to automatically score records with Champion model")
+
+
+class IngestResponse(BaseModel):
+    status: str
+    record_count: int
+    sources: List[str]
+    saved_partition: str
+    sample_records: Optional[List[dict]] = None
+
+
 # PyArrow Schema for writing high-performance Parquet logs to GCS/Storage
 if PYARROW_AVAILABLE:
     INFERENCE_LOG_SCHEMA = pa.schema([

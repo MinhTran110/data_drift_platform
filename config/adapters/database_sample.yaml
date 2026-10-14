@@ -1,0 +1,23 @@
+source_name: "core_banking_db"
+description: "SQL extraction adapter from transaction database"
+
+db_type: "sqlite"
+query: |
+  SELECT 
+    app_id as record_id,
+    customer_age as age,
+    yearly_income as annual_income,
+    bureau_score as credit_score,
+    dti as debt_to_income_ratio,
+    requested_amount as loan_amount,
+    apr as interest_rate,
+    housing_status as home_ownership,
+    purpose as loan_intent,
+    experience_years as employment_history_length,
+    created_at
+  FROM loan_applications
+  WHERE created_at >= :window_start 
+    AND created_at < :window_end
+    AND status IN ("PROCESSED", "APPROVED", "REJECTED")
+
+watermark_column: "created_at"
