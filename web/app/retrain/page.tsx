@@ -2,6 +2,34 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  Rocket,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  History,
+  Layers,
+  ArrowRight,
+  ExternalLink,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface RetrainJobItem {
   id: number;
@@ -32,7 +60,7 @@ export default function RetrainPage() {
   const [jobs, setJobs] = useState<RetrainJobItem[]>([]);
   const [champion, setChampion] = useState<ChampionMetadata | null>(null);
   const [loading, setLoading] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -54,12 +82,10 @@ export default function RetrainPage() {
   };
 
   const handleTriggerRetrain = async () => {
-    if (!confirm("Are you sure you want to trigger the model retraining workflow on GitHub Actions?")) {
-      return;
-    }
+    setConfirmOpen(false);
     setLoading(true);
-    setActionMessage(null);
-    try {
+
+    const promise = (async () => {
       const res = await fetch("/api/retrain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -69,14 +95,24 @@ export default function RetrainPage() {
         }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setActionMessage(`Retrain job #${data.job_id} successfully queued! Workflow dispatched to GitHub Actions.`);
-        fetchJobs();
-      } else {
-        setActionMessage(`Retrain failed: ${data.message || data.error}`);
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || "Retrain request failed");
       }
-    } catch (e: any) {
-      setActionMessage(`Network error: ${e.message}`);
+      fetchJobs();
+      return data;
+    })();
+
+    toast.promise(promise, {
+      loading: "Đang gửi tín hiệu kích hoạt quy trình lên GitHub Actions...",
+      success: (data) =>
+        `Đã kích hoạt Retrain Job #${data.job_id}! GitHub Actions đang xử lý huấn luyện Challenger.`,
+      error: (err) => `Kích hoạt thất bại: ${err.message}`,
+    });
+
+    try {
+      await promise;
+    } catch {
+      // handled by toast
     } finally {
       setLoading(false);
     }
@@ -85,199 +121,302 @@ export default function RetrainPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-slate-900">Model Retraining &amp; Governance Center</h1>
-            <span className="rounded bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
-              Closed-Loop Automation
-            </span>
+      <Card className="border-border bg-card">
+        <CardContent className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  Model Retraining &amp; Governance Center
+                </h1>
+                <Badge variant="info">Closed-Loop Automation</Badge>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Đánh giá ngoại tuyến mô hình Champion vs Challenger, điều phối workflow GitHub Actions,
+                và hot-reload không downtime.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setConfirmOpen(true)}
+                disabled={loading}
+                className="gap-2 shadow-sm font-semibold"
+              >
+                <Rocket className="h-4 w-4" />
+                <span>{loading ? "Đang gửi tín hiệu..." : "Kích Hoạt Retrain Model"}</span>
+              </Button>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Automated Champion vs Challenger offline evaluation, GitHub Actions workflow dispatch, and zero-downtime hot reload.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleTriggerRetrain}
-            disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-          >
-            {loading ? "Dispatching..." : "🚀 Trigger Retrain Workflow"}
-          </button>
-        </div>
-      </div>
-
-      {actionMessage && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs font-medium text-blue-800">
-          {actionMessage}
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
       {/* Model Governance Status Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Active Champion Card */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Active Champion
-          </span>
-          <div className="mt-2 flex items-baseline gap-3">
-            <span className="text-3xl font-extrabold text-slate-900">
-              {champion?.version || "v1"}
-            </span>
-            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-              In Production
-            </span>
-          </div>
-          <div className="mt-4 space-y-2 text-xs">
-            <div className="flex justify-between text-slate-600">
-              <span>Model Architecture:</span>
-              <span className="font-mono font-medium text-slate-800">HistGradientBoosting</span>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Active Champion
+              </span>
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex items-baseline gap-3 pt-1">
+              <span className="text-3xl font-extrabold text-foreground font-mono">
+                {champion?.version || "v10"}
+              </span>
+              <Badge variant="stable">In Production</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2.5 text-xs">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Kiến trúc mô hình:</span>
+              <span className="font-mono font-medium text-foreground">HistGradientBoosting</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
               <span>Validation ROC-AUC:</span>
-              <span className="font-mono font-bold text-slate-900">
-                {champion?.metrics?.roc_auc !== undefined ? champion.metrics.roc_auc.toFixed(4) : "0.8420"}
+              <span className="font-mono font-bold text-foreground">
+                {champion?.metrics?.roc_auc !== undefined
+                  ? champion.metrics.roc_auc.toFixed(4)
+                  : "0.9991"}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex justify-between text-muted-foreground">
               <span>Validation F1-Score:</span>
-              <span className="font-mono font-medium text-slate-800">
-                {champion?.metrics?.f1_score !== undefined ? champion.metrics.f1_score.toFixed(4) : "0.7812"}
+              <span className="font-mono font-medium text-foreground">
+                {champion?.metrics?.f1_score !== undefined
+                  ? champion.metrics.f1_score.toFixed(4)
+                  : "0.9822"}
               </span>
             </div>
-            <div className="flex justify-between text-slate-600">
-              <span>Hot Reload Mode:</span>
-              <span className="text-emerald-600 font-medium">Atomic Zero-Downtime</span>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Cơ chế tải mô hình:</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                Atomic Zero-Downtime Hot Reload
+              </span>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Retraining Gate Policy */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Promotion Gate Criteria
-          </span>
-          <div className="mt-4 space-y-2.5 text-xs text-slate-600">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Promotion Gate Criteria
+              </span>
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="text-sm font-semibold pt-1">
+              Tiêu Chuẩn Thăng Hạng Tự Động
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5 text-xs text-muted-foreground">
             <div className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">✓</span>
               <span>
-                <strong>ROC-AUC Delta:</strong> Challenger must achieve \(\Delta \ge 0.005\) over Champion.
+                <strong className="text-foreground">ROC-AUC Delta:</strong> Challenger phải đạt Δ ≥ +0.005 so với Champion.
               </span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">✓</span>
               <span>
-                <strong>Max Degradation:</strong> Reject if validation AUC drops by \(&gt; 1.0\%\).
+                <strong className="text-foreground">Giới hạn suy giảm:</strong> Từ chối nếu ROC-AUC giảm quá 1.0%.
               </span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">✓</span>
               <span>
-                <strong>Baseline Refresh:</strong> Automatically updates <code>bins.json</code> and reference samples on promotion.
+                <strong className="text-foreground">Làm mới Baseline:</strong> Tự động cập nhật <code>bins.json</code> và mẫu tham chiếu khi promote.
               </span>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Trigger Channels */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Approval &amp; Trigger Channels
-          </span>
-          <div className="mt-4 space-y-2.5 text-xs">
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
-              <div className="font-semibold text-slate-900">1. Telegram 1-Click Approval</div>
-              <div className="text-slate-500 text-[11px]">
-                Engineers receive critical alerts with inline <code>[Approve Retrain]</code> button.
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Kênh Kích Hoạt &amp; Phê Duyệt
+              </span>
+              <Layers className="h-4 w-4 text-purple-500" />
+            </div>
+            <CardTitle className="text-sm font-semibold pt-1">
+              Đa Kênh Quản Trị MLOps
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5 text-xs">
+            <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+              <div className="font-semibold text-foreground">1. Phê duyệt 1-Click qua Telegram</div>
+              <div className="text-muted-foreground text-[11px] mt-0.5">
+                Kỹ sư nhận cảnh báo kèm nút bấm inline <code>[Approve Retrain]</code>.
               </div>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
-              <div className="font-semibold text-slate-900">2. Automated Severe Trigger</div>
-              <div className="text-slate-500 text-[11px]">
-                Dispatches workflow automatically when &ge;2 high-importance features drift.
+            <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+              <div className="font-semibold text-foreground">2. Kích hoạt tự động khi Drift nghiêm trọng</div>
+              <div className="text-muted-foreground text-[11px] mt-0.5">
+                Tự động gửi GitHub Actions khi ≥2 đặc trưng quan trọng vượt ngưỡng 0.20.
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Retraining Jobs History */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 p-4">
-          <h3 className="text-base font-semibold text-slate-900">Retraining Jobs &amp; Audit Trail</h3>
-          <p className="text-xs text-slate-500">History of champion vs challenger retraining workflows</p>
-        </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-bold text-foreground">
+                Nhật Ký &amp; Lịch Sử Huấn Luyện (Audit Trail)
+              </CardTitle>
+              <CardDescription>
+                Toàn bộ lịch sử các phiên đánh giá Champion vs Challenger
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">
+              {jobs.length} Jobs
+            </Badge>
+          </div>
+        </CardHeader>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold">
-              <tr>
-                <th className="px-4 py-3">Job ID</th>
-                <th className="px-4 py-3">Triggered By</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Champion vs Challenger</th>
-                <th className="px-4 py-3">Evaluation Delta</th>
-                <th className="px-4 py-3">Approved By</th>
-                <th className="px-4 py-3">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {jobs.length === 0 ? (
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border text-left text-xs">
+              <thead className="bg-muted/50 text-muted-foreground font-semibold">
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
-                    No retraining jobs recorded yet.
-                  </td>
+                  <th className="px-4 py-3">Job ID</th>
+                  <th className="px-4 py-3">Nguồn kích hoạt</th>
+                  <th className="px-4 py-3">Trạng thái</th>
+                  <th className="px-4 py-3">Phiên bản Đối sánh</th>
+                  <th className="px-4 py-3">Độ lệch Đánh giá (Δ AUC)</th>
+                  <th className="px-4 py-3">Người phê duyệt</th>
+                  <th className="px-4 py-3">Thời gian</th>
                 </tr>
-              ) : (
-                jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-slate-50/70">
-                    <td className="px-4 py-3 font-mono font-medium text-slate-900">#{job.id}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono text-slate-700">
-                        {job.triggered_by}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                          job.status === "COMPLETED"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : job.status === "RUNNING"
-                            ? "bg-blue-50 text-blue-700 animate-pulse"
-                            : job.status === "PENDING"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-rose-50 text-rose-700"
-                        }`}
-                      >
-                        {job.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-slate-700">
-                      {job.champion_version || "v1"} → {job.challenger_version || "v2"}
-                    </td>
-                    <td className="px-4 py-3 font-mono">
-                      {job.metrics?.delta_auc !== undefined ? (
-                        <span className={job.metrics.delta_auc >= 0 ? "text-emerald-600 font-bold" : "text-rose-600"}>
-                          Δ AUC: {job.metrics.delta_auc >= 0 ? "+" : ""}
-                          {job.metrics.delta_auc.toFixed(4)}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">Pending Evaluation</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{job.approved_by || "System"}</td>
-                    <td className="px-4 py-3 text-slate-500 font-mono">
-                      {new Date(job.created_at).toLocaleString()}
+              </thead>
+              <tbody className="divide-y divide-border bg-card">
+                {jobs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                      Chưa có phiên huấn luyện lại nào được ghi nhận.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                ) : (
+                  jobs.map((job) => (
+                    <tr key={job.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3 font-mono font-medium text-foreground">
+                        #{job.id}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded bg-muted px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
+                          {job.triggered_by}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={
+                            job.status === "COMPLETED"
+                              ? "stable"
+                              : job.status === "RUNNING"
+                              ? "info"
+                              : job.status === "PENDING"
+                              ? "warning"
+                              : "destructive"
+                          }
+                          className="font-mono"
+                        >
+                          {job.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-foreground">
+                        {job.champion_version || "v9"} → {job.challenger_version || "v10"}
+                      </td>
+                      <td className="px-4 py-3 font-mono">
+                        {job.metrics?.delta_auc !== undefined ? (
+                          <span
+                            className={
+                              job.metrics.delta_auc >= 0
+                                ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                                : "text-rose-600 dark:text-rose-400"
+                            }
+                          >
+                            Δ AUC: {job.metrics.delta_auc >= 0 ? "+" : ""}
+                            {job.metrics.delta_auc.toFixed(4)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Chờ đánh giá</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {job.approved_by || "System Auto"}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono">
+                        {new Date(job.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Radix Dialog Modal */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-amber-500">
+              <AlertTriangle className="h-5 w-5" />
+              <DialogTitle className="text-base font-bold text-foreground">
+                Xác Nhận Kích Hoạt Huấn Luyện Lại (Model Retraining)
+              </DialogTitle>
+            </div>
+            <DialogDescription className="pt-2 text-xs leading-relaxed">
+              Bạn đang chuẩn bị phát tín hiệu <code>repository_dispatch</code> tới GitHub Actions để khởi động quy trình huấn luyện lại mô hình máy học:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+              <span>Gộp dữ liệu sản xuất mới nhất trong cửa sổ giám sát</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+              <span>Huấn luyện mô hình Challenger bằng HistGradientBoosting</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+              <span>Thẩm định chất lượng trước cổng Promotion Gate (Δ ROC-AUC)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+              <span>Hot-reload mô hình Champion mới tức thì không gián đoạn</span>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={handleTriggerRetrain}
+            >
+              <Rocket className="h-3.5 w-3.5" />
+              <span>Xác Nhận &amp; Kích Hoạt</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

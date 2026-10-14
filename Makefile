@@ -1,4 +1,4 @@
-.PHONY: help setup install seed serve worker-run simulate-drift retrain test lint docker-up docker-down clean
+.PHONY: help setup install seed serve worker-run simulate-drift retrain test lint docker-up docker-down clean web
 
 PYTHON ?= .venv/bin/python
 PIP ?= .venv/bin/pip
@@ -57,6 +57,9 @@ lint:
 
 docker-up:
 	docker compose up -d
+
+web:
+	cd web && npm run dev
 
 docker-down:
 	docker compose down -v

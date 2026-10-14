@@ -1,0 +1,34 @@
+adapter_name: "kaggle_credit_risk"
+version: "1.0.0"
+description: "Adapter for raw Kaggle Credit Risk Dataset (laotse/credit-risk-dataset)"
+
+column_mappings:
+  person_age: "age"
+  person_income: "annual_income"
+  person_home_ownership: "home_ownership"
+  person_emp_length: "employment_history_length"
+  loan_intent: "loan_intent"
+  loan_amnt: "loan_amount"
+  loan_int_rate: "interest_rate"
+  loan_percent_income: "debt_to_income_ratio"
+  credit_score: "credit_score"
+  loan_status: "target"
+
+derivations:
+  # If credit_score is missing in raw file, approximate from default history & interest rate
+  - target_column: "credit_score"
+    expression: "850 - (interest_rate * 12.5)"
+
+value_mappings:
+  home_ownership:
+    "RENT": "RENT"
+    "OWN": "OWN"
+    "MORTGAGE": "MORTGAGE"
+    "OTHER": "OTHER"
+  loan_intent:
+    "PERSONAL": "PERSONAL"
+    "EDUCATION": "EDUCATION"
+    "MEDICAL": "MEDICAL"
+    "VENTURE": "VENTURE"
+    "HOMEIMPROVEMENT": "HOMEIMPROVEMENT"
+    "DEBTCONSOLIDATION": "DEBTCONSOLIDATION"

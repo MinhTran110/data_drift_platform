@@ -1,23 +1,19 @@
-source_name: "core_banking_db"
-description: "SQL extraction adapter from transaction database"
+adapter_name: "core_banking_production"
+source_type: "database"
 
-db_type: "sqlite"
-query: |
-  SELECT 
-    app_id as record_id,
-    customer_age as age,
-    yearly_income as annual_income,
-    bureau_score as credit_score,
-    dti as debt_to_income_ratio,
-    requested_amount as loan_amount,
-    apr as interest_rate,
-    housing_status as home_ownership,
-    purpose as loan_intent,
-    experience_years as employment_history_length,
-    created_at
-  FROM loan_applications
-  WHERE created_at >= :window_start 
-    AND created_at < :window_end
-    AND status IN ("PROCESSED", "APPROVED", "REJECTED")
+database:
+  connection_string: "postgresql://username:password@your-db-host.com:5432/core_banking"
 
-watermark_column: "created_at"
+  query: >
+    SELECT 
+      cust_id,
+      age_years AS "tuoi",
+      yearly_income AS "thu_nhap",
+      credit_score_val AS "diem_tin_dung",
+      ownership_type AS "nha_o",
+      loan_purpose AS "muc_dich_vay",
+      debt_ratio AS "ti_le_no"
+    FROM loan_contracts
+    WHERE created_at >= :window_start AND created_at < :window_end;
+  
+  watermark_column: "created_at"

@@ -3,6 +3,10 @@ import Link from "next/link";
 import { query } from "@/lib/db";
 import { StatusBadge } from "@/components/StatusBadge";
 import { HistogramOverlay, HistogramData } from "@/components/HistogramOverlay";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Sliders, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface FeaturePageProps {
   params: {
@@ -95,33 +99,56 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
   return (
     <div className="space-y-6">
       {/* Navigation and Title */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div>
-          <Link
-            href="/dashboard"
-            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-2"
-          >
-            ← Back to Dashboard Overview
-          </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-slate-900 font-mono">{detail.feature_name}</h1>
-            <StatusBadge status={detail.status} size="md" />
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-mono text-slate-600">
-              {detail.feature_type}
-            </span>
-            <span className="text-xs font-semibold text-rose-600 uppercase">
-              {detail.importance} importance
-            </span>
-          </div>
-        </div>
+      <Card className="border-border bg-card">
+        <CardContent className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="gap-1.5 -ml-2 mb-2 text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Quay lại Dashboard Tổng quan</span>
+                </Button>
+              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold font-mono text-foreground">
+                  {detail.feature_name}
+                </h1>
+                <StatusBadge status={detail.status} size="md" />
+                <Badge variant="outline" className="font-mono text-xs">
+                  {detail.feature_type}
+                </Badge>
+                <Badge
+                  variant={
+                    detail.importance === "high" || detail.importance === "critical"
+                      ? "destructive"
+                      : "secondary"
+                  }
+                  className="uppercase text-[10px]"
+                >
+                  {detail.importance} importance
+                </Badge>
+              </div>
+            </div>
 
-        <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-2 text-right">
-          <span className="text-[11px] text-slate-500">Population Stability Index (PSI)</span>
-          <div className="text-xl font-bold font-mono text-slate-900">
-            {Number(detail.psi).toFixed(4)}
+            <div className="rounded-xl border border-border bg-muted/30 px-5 py-3 text-right">
+              <span className="text-[11px] text-muted-foreground block">
+                Population Stability Index (PSI)
+              </span>
+              <div
+                className={`text-2xl font-bold font-mono ${
+                  detail.psi >= 0.2
+                    ? "text-rose-600 dark:text-rose-400"
+                    : detail.psi >= 0.1
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+                }`}
+              >
+                {Number(detail.psi).toFixed(4)}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Histogram Overlay Component */}
       <HistogramOverlay
@@ -132,146 +159,131 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
       {/* Summary Stats Comparison & Statistical Tests */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Statistical Test Card */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">
-            Statistical Hypothesis Testing
-          </h3>
-          <p className="text-xs text-slate-500 mb-4">
-            Rigorous statistical tests comparing baseline reference vs. current batch window
-          </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Sliders className="h-4 w-4 text-primary" />
+              Kiểm Định Giả Thuyết Thống Kê (Hypothesis Testing)
+            </CardTitle>
+            <CardDescription>
+              Kiểm định độ sai biệt phân phối mẫu thực tế với phân phối mẫu chuẩn
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {detail.feature_type === "numerical" ? (
+              <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground font-medium">Loại kiểm định:</span>
+                  <span className="font-semibold text-foreground">
+                    Two-Sample Kolmogorov-Smirnov (KS) Test
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Chỉ số KS Statistic:</span>
+                  <span className="font-mono font-bold text-foreground">
+                    {detail.ks_statistic ?? "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Mức ý nghĩa p-value:</span>
+                  <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                    {detail.ks_p_value !== undefined ? detail.ks_p_value.toFixed(6) : "N/A"}
+                  </span>
+                </div>
+                <div className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                  <strong>Kết luận:</strong>{" "}
+                  {detail.ks_p_value !== undefined && detail.ks_p_value < 0.05
+                    ? "p < 0.05 — Bác bỏ giả thuyết đồng nhất (H0). Tồn tại sự biến động phân phối có ý nghĩa thống kê."
+                    : "p >= 0.05 — Không đủ bằng chứng bác bỏ H0. Phân phối tương đối ổn định."}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground font-medium">Loại kiểm định:</span>
+                  <span className="font-semibold text-foreground">
+                    Chi-Square Test of Homogeneity (χ²)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Chỉ số χ² Statistic:</span>
+                  <span className="font-mono font-bold text-foreground">
+                    {detail.chi2_statistic ?? "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Mức ý nghĩa p-value:</span>
+                  <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                    {detail.chi2_p_value !== undefined ? detail.chi2_p_value.toFixed(6) : "N/A"}
+                  </span>
+                </div>
+                <div className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                  <strong>Kết luận:</strong>{" "}
+                  {detail.chi2_p_value !== undefined && detail.chi2_p_value < 0.05
+                    ? "p < 0.05 — Phân phối tần suất các nhãn danh mục có sự thay đổi rõ rệt."
+                    : "p >= 0.05 — Tỷ lệ giữa các nhãn phân loại ổn định."}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {detail.feature_type === "numerical" ? (
-            <div className="space-y-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Test Type:</span>
-                <span className="font-semibold text-slate-900">Two-Sample Kolmogorov-Smirnov (KS) Test</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600">KS Statistic:</span>
-                <span className="font-mono font-bold text-slate-800">{detail.ks_statistic ?? "N/A"}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600">p-value:</span>
-                <span className="font-mono font-bold text-rose-600">
-                  {detail.ks_p_value !== undefined ? detail.ks_p_value.toFixed(6) : "N/A"}
-                </span>
-              </div>
-              <div className="mt-2 border-t border-slate-200 pt-2 text-[11px] text-slate-500">
-                <strong>Verdict:</strong>{" "}
-                {detail.ks_p_value !== undefined && detail.ks_p_value < 0.05
-                  ? "p < 0.05 — Statistically significant difference between distributions. Null hypothesis rejected."
-                  : "p >= 0.05 — No statistically significant distribution shift detected."}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Test Type:</span>
-                <span className="font-semibold text-slate-900">Chi-Square Test of Homogeneity (χ²)</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600">χ² Statistic:</span>
-                <span className="font-mono font-bold text-slate-800">{detail.chi2_statistic ?? "N/A"}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600">p-value:</span>
-                <span className="font-mono font-bold text-rose-600">
-                  {detail.chi2_p_value !== undefined ? detail.chi2_p_value.toFixed(6) : "N/A"}
-                </span>
-              </div>
-              <div className="mt-2 border-t border-slate-200 pt-2 text-[11px] text-slate-500">
-                <strong>Verdict:</strong>{" "}
-                {detail.chi2_p_value !== undefined && detail.chi2_p_value < 0.05
-                  ? "p < 0.05 — Significant categorical frequency discrepancy detected."
-                  : "p >= 0.05 — Categorical frequencies remain consistent with baseline."}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Baseline vs Production Summary Statistics */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">
-            Distribution Metrics Comparison
-          </h3>
-          <p className="text-xs text-slate-500 mb-4">
-            Key summary moments for reference training set vs current batch window
-          </p>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="border-b border-slate-200 text-slate-500 font-medium">
-                <tr>
-                  <th className="py-2">Metric</th>
-                  <th className="py-2 text-blue-600 font-semibold">Baseline</th>
-                  <th className="py-2 text-amber-600 font-semibold">Production (6h)</th>
-                  <th className="py-2 text-right">Delta</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-mono">
-                {detail.feature_type === "numerical" ? (
-                  <>
+        {/* Descriptive Stats Comparison Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">
+              Đối Chiếu Thống Kê Mô Tả (Descriptive Stats)
+            </CardTitle>
+            <CardDescription>
+              So sánh các đại lượng đo lường vị trí và phân tán giữa 2 tập dữ liệu
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {detail.baseline_stats && detail.current_stats ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-border text-left text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <th className="py-2">Đại lượng</th>
+                      <th className="py-2 text-right">Baseline (Chuẩn)</th>
+                      <th className="py-2 text-right">Mẻ Hiện Tại (6h)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border text-foreground font-mono">
                     <tr>
-                      <td className="py-2 text-slate-600 font-sans">Mean</td>
-                      <td className="py-2">{detail.baseline_stats?.mean?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2 font-bold">{detail.current_stats?.mean?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2 text-right text-rose-600">
-                        {detail.baseline_stats?.mean && detail.current_stats?.mean
-                          ? (detail.current_stats.mean - detail.baseline_stats.mean).toFixed(2)
-                          : "-"}
+                      <td className="py-2 font-sans text-muted-foreground">Trung bình (Mean)</td>
+                      <td className="py-2 text-right">{detail.baseline_stats.mean ?? "-"}</td>
+                      <td className="py-2 text-right font-semibold">{detail.current_stats.mean ?? "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-sans text-muted-foreground">Độ lệch chuẩn (Std)</td>
+                      <td className="py-2 text-right">{detail.baseline_stats.std ?? "-"}</td>
+                      <td className="py-2 text-right font-semibold">{detail.current_stats.std ?? "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-sans text-muted-foreground">Trung vị (Median)</td>
+                      <td className="py-2 text-right">{detail.baseline_stats.median ?? "-"}</td>
+                      <td className="py-2 text-right font-semibold">{detail.current_stats.median ?? "-"}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-sans text-muted-foreground">Tỷ lệ khuyết (Missing)</td>
+                      <td className="py-2 text-right">0.0%</td>
+                      <td className="py-2 text-right font-semibold">
+                        {detail.current_stats.missing_pct !== undefined
+                          ? `${(detail.current_stats.missing_pct * 100).toFixed(1)}%`
+                          : "0.0%"}
                       </td>
                     </tr>
-                    <tr>
-                      <td className="py-2 text-slate-600 font-sans">Std Dev</td>
-                      <td className="py-2">{detail.baseline_stats?.std?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2">{detail.current_stats?.std?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2 text-right">
-                        {detail.baseline_stats?.std && detail.current_stats?.std
-                          ? (detail.current_stats.std - detail.baseline_stats.std).toFixed(2)
-                          : "-"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-slate-600 font-sans">Median</td>
-                      <td className="py-2">{detail.baseline_stats?.median?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2">{detail.current_stats?.median?.toFixed(2) ?? "-"}</td>
-                      <td className="py-2 text-right">
-                        {detail.baseline_stats?.median && detail.current_stats?.median
-                          ? (detail.current_stats.median - detail.baseline_stats.median).toFixed(2)
-                          : "-"}
-                      </td>
-                    </tr>
-                  </>
-                ) : (
-                  <>
-                    <tr>
-                      <td className="py-2 text-slate-600 font-sans">Top Category</td>
-                      <td className="py-2 font-sans">{detail.baseline_stats?.top_category ?? "-"}</td>
-                      <td className="py-2 font-sans font-bold">{detail.current_stats?.top_category ?? "-"}</td>
-                      <td className="py-2 text-right font-sans text-slate-400">-</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-slate-600 font-sans">Distinct Categories</td>
-                      <td className="py-2">{detail.baseline_stats?.unique_count ?? "-"}</td>
-                      <td className="py-2">{detail.current_stats?.unique_count ?? "-"}</td>
-                      <td className="py-2 text-right">0</td>
-                    </tr>
-                  </>
-                )}
-                <tr>
-                  <td className="py-2 text-slate-600 font-sans">Missing / Null Rate</td>
-                  <td className="py-2">0.0%</td>
-                  <td className="py-2 font-bold">
-                    {detail.current_stats?.missing_pct !== undefined
-                      ? `${(detail.current_stats.missing_pct * 100).toFixed(1)}%`
-                      : "0.0%"}
-                  </td>
-                  <td className="py-2 text-right text-emerald-600">Passed</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Dữ liệu thống kê mô tả chưa khả dụng cho trường hợp này.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

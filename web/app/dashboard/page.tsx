@@ -1,11 +1,12 @@
 import React from "react";
-import Link from "next/link";
 import { query } from "@/lib/db";
-import { StatusBadge } from "@/components/StatusBadge";
-import { PsiTrendChart, TrendPoint } from "@/components/PsiTrendChart";
-import { FeatureTable, FeatureRow } from "@/components/FeatureTable";
+import { TrendPoint } from "@/components/PsiTrendChart";
+import { FeatureRow } from "@/components/FeatureTable";
+import { DashboardInteractiveView } from "@/components/DashboardInteractiveView";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
 async function getDashboardData() {
   try {
     // 1. Fetch latest drift run
@@ -20,13 +21,15 @@ async function getDashboardData() {
         [latestRun.id]
       );
 
-      const trendPoints: TrendPoint[] = runs.map((r: any) => ({
-        id: r.id,
-        timestamp: r.created_at,
-        psi: parseFloat(r.max_psi) || 0,
-        status: r.overall_status,
-        sampleCount: r.sample_count,
-      })).reverse();
+      const trendPoints: TrendPoint[] = runs
+        .map((r: any) => ({
+          id: r.id,
+          timestamp: r.created_at,
+          psi: parseFloat(r.max_psi) || 0,
+          status: r.overall_status,
+          sampleCount: r.sample_count,
+        }))
+        .reverse();
 
       const formattedFeatures = (features || []).map((f: any) => ({
         ...f,
@@ -171,83 +174,10 @@ export default async function DashboardPage() {
   const { latestRun, features, trendPoints } = await getDashboardData();
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner / Status Overview */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-slate-900">Drift Overview &amp; Health Dashboard</h1>
-            <StatusBadge status={latestRun.overall_status} size="lg" />
-          </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Near-real-time batch inference monitoring (Window: 6 Hours) • Model Target: <code>credit_risk_default</code>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/retrain"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-          >
-            Model Governance &amp; Retrain →
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-medium text-slate-500">Active Champion Version</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900">{latestRun?.champion_version || "v8"}</span>
-            <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-              Serving In-Prod
-            </span>
-          </div>
-          <p className="mt-2 text-[11px] text-slate-400">Zero-downtime hot reload active</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-medium text-slate-500">Max Feature PSI</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-rose-600">
-              {Number(latestRun.max_psi).toFixed(4)}
-            </span>
-            <span className="text-xs font-mono text-slate-500">credit_score</span>
-          </div>
-          <p className="mt-2 text-[11px] text-rose-500 font-medium">Exceeds alert threshold (0.20)</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-medium text-slate-500">Batch Monitored Samples</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900">
-              {Number(latestRun.sample_count).toLocaleString()}
-            </span>
-            <span className="text-xs text-slate-500">rows / 6h</span>
-          </div>
-          <p className="mt-2 text-[11px] text-emerald-600 font-medium">Above min_samples (100)</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <span className="text-xs font-medium text-slate-500">Prediction Drift PSI</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-amber-600">
-              {latestRun.prediction_drift?.psi !== undefined
-                ? Number(latestRun.prediction_drift.psi).toFixed(4)
-                : "0.0000"}
-            </span>
-            <StatusBadge status={latestRun.prediction_drift?.status || "STABLE"} size="sm" />
-          </div>
-          <p className="mt-2 text-[11px] text-slate-400">Model output probability shift</p>
-        </div>
-      </div>
-
-      {/* Historical PSI Trend Chart */}
-      <PsiTrendChart data={trendPoints} />
-
-      {/* Feature Breakdown Table */}
-      <FeatureTable features={features} />
-    </div>
+    <DashboardInteractiveView
+      latestRun={latestRun}
+      features={features}
+      trendPoints={trendPoints}
+    />
   );
 }

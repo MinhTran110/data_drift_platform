@@ -50,7 +50,17 @@ class DataAdapter:
     # =========================================================================
 
     def extract_from_file(self, file_path: Union[str, Path], format_type: Optional[str] = None) -> pd.DataFrame:
-        """Extracts raw DataFrame from a single file based on format or extension."""
+        """Extracts raw DataFrame from a single file or remote URL based on format or extension."""
+        file_str = str(file_path)
+        if file_str.startswith("http://") or file_str.startswith("https://"):
+            logger.info("Downloading external data from URL: %s", file_str)
+            import requests
+            resp = requests.get(file_str, timeout=30)
+            resp.raise_for_status()
+            import io
+            ext = file_str.split("?")[0].split(".")[-1].lower() if "." in file_str else "csv"
+            return self.extract_from_bytes(resp.content, f"downloaded_external.{ext}")
+
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Source file not found: {file_path}")
@@ -243,12 +253,19 @@ class DataAdapter:
         config = self._load_mapping_config(mapping_config)
 
         # 1. Rename columns
-        col_map = config.get("column_mapping", {})
+        col_map = config.get("column_mapping") or config.get("column_mappings", {})
         if col_map:
             df = df.rename(columns=col_map)
 
         # 2. Compute derivations (safe column arithmetic / expressions)
         derivations = config.get("derivations", {})
+        if isinstance(derivations, list):
+            deriv_dict = {}
+            for item in derivations:
+                if isinstance(item, dict) and "target_column" in item and "expression" in item:
+                    deriv_dict[item["target_column"]] = item["expression"]
+            derivations = deriv_dict
+
         for target_col, expr in derivations.items():
             try:
                 df[target_col] = df.eval(expr)
