@@ -35,6 +35,7 @@ def test_file_extraction_csv(adapter, tmp_path):
 
 
 def test_file_extraction_excel(adapter, tmp_path):
+    pytest.importorskip("openpyxl")
     excel_file = tmp_path / "raw_crm.xlsx"
     df_raw = pd.DataFrame({
         "customer_id": [101, 102],
