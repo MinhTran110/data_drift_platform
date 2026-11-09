@@ -11,9 +11,11 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import requests
 import yaml
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 from worker.gcs_io import StorageIO
 from worker.metrics import compute_feature_metrics, compute_prediction_drift
